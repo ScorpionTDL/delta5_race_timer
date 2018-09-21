@@ -267,6 +267,25 @@ def index():
         pilots=Pilot, heats=Heat \
         , heat_max_laps=heat_max_laps, heat_fast_laps=heat_fast_laps)
 
+@APP.route('/laps')
+def laps():
+
+    total_top_fastes_laps = []
+    all_laps_sorted_by_time = []
+    current_lap_counter = 0
+    for lap in SavedRace.query.filter(SavedRace.lap_id!=0).order_by(SavedRace.lap_time):
+      total_top_fastes_laps.append(lap)
+      current_lap_counter = current_lap_counter +1
+      if current_lap_counter == 10:
+       break
+
+    for lap in SavedRace.query.order_by(SavedRace.lap_time):
+     all_laps_sorted_by_time.append(lap)
+
+
+
+    return render_template('laps.html', num_nodes=RACE.num_nodes, rounds=SavedRace, pilots=Pilot, heats=Heat,  total_top_fastes_laps=total_top_fastes_laps)
+
 @APP.route('/heats')
 def heats():
     '''Route to heat summary page.'''
@@ -274,6 +293,7 @@ def heats():
         frequencies=[node.frequency for node in INTERFACE.nodes], \
         channels=[Frequency.query.filter_by(frequency=node.frequency).first().channel \
             for node in INTERFACE.nodes])
+
 
 @APP.route('/race')
 @requires_auth
