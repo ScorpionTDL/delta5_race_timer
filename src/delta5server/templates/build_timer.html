@@ -109,16 +109,16 @@
 			if (timer.getMode() == 1) { // Count up clock
 				if (time == 0) { buzzer.play(); } // Start buzzer
 				if (time == 120) {
-					speak('<div class="timer">2 minutes</div>');
+				//	speak('<div class="timer">2 minutes</div>');
 				} //2 min call out
 			}
 			if (time == 30) { 
 					ratenormal();
-					speak('<div class="timer">30 seconds</div>');				
+				//	speak('<div class="timer">30 seconds</div>');				
 			} // 30 second call out
 			if (time == 60) {
 					ratenormal();
-					speak('<div class="timer">1 minute</div>');				
+				//	speak('<div class="timer">1 minute</div>');				
 			} // 1 min call out
 		}
 	);
