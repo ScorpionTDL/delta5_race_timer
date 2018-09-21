@@ -235,39 +235,37 @@ def index():
     # - One for individual heats
     #
     # Calculate heat summaries
-    # heat_max_laps = []
-    # heat_fast_laps = []
-    # for heat in SavedRace.query.with_entities(SavedRace.heat_id).distinct() \
-    #     .order_by(SavedRace.heat_id):
-    #     max_laps = []
-    #     fast_laps = []
-    #     for node in range(RACE.num_nodes):
-    #         node_max_laps = 0
-    #         node_fast_lap = 0
-    #         for race_round in SavedRace.query.with_entities(SavedRace.round_id).distinct() \
-    #             .filter_by(heat_id=heat.heat_id).order_by(SavedRace.round_id):
-    #             round_max_lap = DB.session.query(DB.func.max(SavedRace.lap_id)) \
-    #                 .filter_by(heat_id=heat.heat_id, round_id=race_round.round_id, \
-    #                 node_index=node).scalar()
-    #             if round_max_lap is None:
-    #                 round_max_lap = 0
-    #             else:
-    #                 round_fast_lap = DB.session.query(DB.func.min(SavedRace.lap_time)) \
-    #                 .filter(SavedRace.node_index == node, SavedRace.lap_id != 0).scalar()
-    #                 if node_fast_lap == 0:
-    #                     node_fast_lap = round_fast_lap
-    #                 if node_fast_lap != 0 and round_fast_lap < node_fast_lap:
-    #                     node_fast_lap = round_fast_lap
-    #             node_max_laps = node_max_laps + round_max_lap
-    #         max_laps.append(node_max_laps)
-    #         fast_laps.append(time_format(node_fast_lap))
-    #     heat_max_laps.append(max_laps)
-    #     heat_fast_laps.append(fast_laps)
-    # print heat_max_laps
-    # print heat_fast_laps
+    heat_max_laps = []
+    heat_fast_laps = []
+    for heat in SavedRace.query.with_entities(SavedRace.heat_id).distinct() \
+         .order_by(SavedRace.heat_id):
+         max_laps = []
+         fast_laps = []
+         for node in range(RACE.num_nodes):
+             node_max_laps = 0
+             node_fast_lap = 0
+             for race_round in SavedRace.query.with_entities(SavedRace.round_id).distinct() \
+                 .filter_by(heat_id=heat.heat_id).order_by(SavedRace.round_id):
+                 round_max_lap = DB.session.query(DB.func.max(SavedRace.lap_id)) \
+                     .filter_by(heat_id=heat.heat_id, round_id=race_round.round_id, \
+                     node_index=node).scalar()
+                 if round_max_lap is None:
+                     round_max_lap = 0
+                 else:
+                     round_fast_lap = DB.session.query(DB.func.min(SavedRace.lap_time)) \
+                     .filter(SavedRace.node_index == node, SavedRace.lap_id != 0).scalar()
+                     if node_fast_lap == 0:
+                         node_fast_lap = round_fast_lap
+                     if node_fast_lap != 0 and round_fast_lap < node_fast_lap:
+                         node_fast_lap = round_fast_lap
+                 node_max_laps = node_max_laps + round_max_lap
+             max_laps.append(node_max_laps)
+             fast_laps.append(time_format(node_fast_lap))
+         heat_max_laps.append(max_laps)
+         heat_fast_laps.append(fast_laps)
     return render_template('rounds.html', num_nodes=RACE.num_nodes, rounds=SavedRace, \
-        pilots=Pilot, heats=Heat)
-        #, heat_max_laps=heat_max_laps, heat_fast_laps=heat_fast_laps
+        pilots=Pilot, heats=Heat \
+        , heat_max_laps=heat_max_laps, heat_fast_laps=heat_fast_laps)
 
 @APP.route('/heats')
 def heats():
@@ -282,6 +280,18 @@ def heats():
 def race():
     '''Route to race management page.'''
     return render_template('race.html', num_nodes=RACE.num_nodes,
+                           current_heat=RACE.current_heat,
+                           heats=Heat, pilots=Pilot,
+                           fix_race_time=FixTimeRace.query.get(1).race_time_sec,
+						   lang_id=RACE.lang_id,
+        frequencies=[node.frequency for node in INTERFACE.nodes],
+        channels=[Frequency.query.filter_by(frequency=node.frequency).first().channel
+            for node in INTERFACE.nodes])
+
+@APP.route('/race_spectate')
+def race_spectate():
+    '''Route to race management page.'''
+    return render_template('race_spectate.html', num_nodes=RACE.num_nodes,
                            current_heat=RACE.current_heat,
                            heats=Heat, pilots=Pilot,
                            fix_race_time=FixTimeRace.query.get(1).race_time_sec,
@@ -613,6 +623,14 @@ def on_start_race_2min():
     time.sleep(1)
     onoff(strip, Color(0,255,0)) #GREEN ON
 
+@SOCKET_IO.on('start_race_no_cal')
+def on_start_race_no_cal():
+    '''Starts the race and the timer counting up, no defined finish.'''
+    start_race_no_cal()
+    SOCKET_IO.emit('start_timer') # Loop back to race page to start the timer counting up
+    time.sleep(1)
+    onoff(strip, Color(0,255,0)) #GREEN ON
+
 def start_race():
     '''Common race start events.'''
     on_clear_laps() # Ensure laps are cleared before race start, shouldn't be needed
@@ -627,6 +645,19 @@ def start_race():
     emit_node_data() # Settings page, node channel and triggers on the launch pads
     emit_race_status() # Race page, to set race button states
 
+def start_race_no_cal():
+    '''Common race start events.'''
+    on_clear_laps() # Ensure laps are cleared before race start, shouldn't be needed
+    emit_current_laps() # Race page, blank laps to the web client
+    emit_leaderboard() # Race page, blank leaderboard to the web client
+ #   INTERFACE.enable_calibration_mode() # Nodes reset triggers on next pass
+    gevent.sleep(0.500) # Make this random 2 to 5 seconds
+    RACE.race_status = 1 # To enable registering passed laps
+    global RACE_START # To redefine main program variable
+    RACE_START = datetime.now() # Update the race start time stamp
+    server_log('Race started at {0}'.format(RACE_START))
+    emit_node_data() # Settings page, node channel and triggers on the launch pad
+    emit_race_status() # Race page, to set race button state
 @SOCKET_IO.on('stop_race')
 def on_race_status():
     '''Stops the race and stops registering laps.'''
@@ -673,8 +704,19 @@ def on_set_current_heat(data):
     RACE.current_heat = new_heat_id
     server_log('Current heat set: Heat {0}'.format(new_heat_id))
     emit_current_heat() # Race page, to update heat selection button
-    emit_leaderboard() # Race page, to update callsigns in leaderboard
+    emit_leaderboard() # Race page, to update callsigns in leaderboar
 
+@SOCKET_IO.on('recal')
+def on_recal(data):	
+	''' issue a recalibration for the node '''
+	node_index = data['node']
+	server_log('Start Recalibration for Node {0} '.format(node_index))
+	INTERFACE.set_calibration_mode(node_index,True)
+	gevent.sleep(0.500) # Make this random 2 to 5 seconds
+	emit_node_data()
+	emit_race_status()
+	
+	
 @SOCKET_IO.on('delete_lap')
 def on_delete_lap(data):
     '''Delete a false lap.'''
@@ -961,6 +1003,7 @@ def pass_record_callback(node, ms_since_lap):
         last_lap_id = DB.session.query(DB.func.max(CurrentLap.lap_id)) \
             .filter_by(node_index=node.index).scalar()
 
+        to_be_added = True
         if last_lap_id is None: # No previous laps, this is the first pass
             # Lap zero represents the time from the launch pad to flying through the gate
             lap_time = lap_time_stamp
@@ -971,36 +1014,44 @@ def pass_record_callback(node, ms_since_lap):
                 node_index=node.index, lap_id=last_lap_id).first().lap_time_stamp
             # New lap time is the difference between the current time stamp and the last
             lap_time = lap_time_stamp - last_lap_time_stamp
-            lap_id = last_lap_id + 1
-
+            
+            #server_log('lap time calculated for Node: {0}, lap id: {1}, lap time: {2}'.format(node.index, lap_id,lap_time))
+            if lap_time < 5000:
+				server_log('lap time below 5, needs to be ignored')
+				to_be_added = False
+            else:
+				lap_id = last_lap_id + 1
+				server_log('time above threshold, valid round')
+				
+        if to_be_added == True: 
         # Add the new lap to the database
-        DB.session.add(CurrentLap(node_index=node.index, pilot_id=pilot_id, lap_id=lap_id, \
-            lap_time_stamp=lap_time_stamp, lap_time=lap_time, \
-            lap_time_formatted=time_format(lap_time)))
-        DB.session.commit()
+            DB.session.add(CurrentLap(node_index=node.index, pilot_id=pilot_id, lap_id=lap_id, \
+				lap_time_stamp=lap_time_stamp, lap_time=lap_time, \
+				lap_time_formatted=time_format(lap_time)))
+            DB.session.commit()
 
-        server_log('Pass record: Node: {0}, Lap: {1}, Lap time: {2}' \
-            .format(node.index, lap_id, time_format(lap_time)))
-        emit_current_laps() # Updates all laps on the race page
-        emit_leaderboard() # Updates leaderboard
-        if lap_id > 0: 
-            emit_phonetic_data(pilot_id, lap_id, lap_time) # Sends phonetic data to be spoken
-        if node.index==0:
-            theaterChase(strip, Color(0,0,255))  #BLUE theater chase
-        elif node.index==1:
-            theaterChase(strip, Color(255,50,0)) #ORANGE theater chase
-        elif node.index==2:
-            theaterChase(strip, Color(255,0,60)) #PINK theater chase
-        elif node.index==3:
-            theaterChase(strip, Color(150,0,255)) #PURPLE theater chase
-        elif node.index==4:
-            theaterChase(strip, Color(250,210,0)) #YELLOW theater chase
-        elif node.index==5:
-            theaterChase(strip, Color(0,255,255)) #CYAN theater chase
-        elif node.index==6:
-            theaterChase(strip, Color(0,255,0)) #GREEN theater chase
-        elif node.index==7:
-            theaterChase(strip, Color(255,0,0)) #RED theater chase
+            server_log('Pass record: Node: {0}, Lap: {1}, Lap time: {2}' \
+				.format(node.index, lap_id, time_format(lap_time)))
+            emit_current_laps() # Updates all laps on the race page
+            emit_leaderboard() # Updates leaderboard
+            if lap_id > 0: 
+				emit_phonetic_data(pilot_id, lap_id, lap_time) # Sends phonetic data to be spoken
+            if node.index==0:
+				theaterChase(strip, Color(0,0,255))  #BLUE theater chase
+            elif node.index==1:
+				theaterChase(strip, Color(255,50,0)) #ORANGE theater chase
+            elif node.index==2:
+				theaterChase(strip, Color(255,0,60)) #PINK theater chase
+            elif node.index==3:
+				theaterChase(strip, Color(150,0,255)) #PURPLE theater chase
+            elif node.index==4:
+				theaterChase(strip, Color(250,210,0)) #YELLOW theater chase
+            elif node.index==5:
+				theaterChase(strip, Color(0,255,255)) #CYAN theater chase
+            elif node.index==6:
+				theaterChase(strip, Color(0,255,0)) #GREEN theater chase
+            elif node.index==7:
+				theaterChase(strip, Color(255,0,0)) #RED theater chase
 
 INTERFACE.pass_record_callback = pass_record_callback
 
@@ -1019,11 +1070,11 @@ INTERFACE.hardware_log_callback = hardware_log_callback
 def default_frequencies():
     '''Set node frequencies, IMD for 6 or less and race band for 7 or 8.'''
     frequencies_imd_5_6 = [5685, 5760, 5800, 5860, 5905, 5645]
-    frequencies_raceband = [5658, 5695, 5732, 5769, 5806, 5843, 5880, 5917]
+    frequencies_raceband = [5732, 5658, 5695, 5769, 5806, 5843, 5880, 5917]
     for index, node in enumerate(INTERFACE.nodes):
         gevent.sleep(0.100)
         if RACE.num_nodes < 7:
-            INTERFACE.set_frequency(index, frequencies_imd_5_6[index])
+            INTERFACE.set_frequency(index, frequencies_raceband[index])
         else:
             INTERFACE.set_frequency(index, frequencies_raceband[index])
     server_log('Default frequencies set')

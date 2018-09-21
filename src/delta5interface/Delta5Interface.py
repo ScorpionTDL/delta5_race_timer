@@ -281,6 +281,7 @@ class Delta5Interface(BaseHardwareInterface):
 
     def set_calibration_mode(self, node_index, calibration_mode):
         node = self.nodes[node_index]
+        print 'perform calibration for node {0}'.format(node_index)
         self.set_and_validate_value_8(node,
             WRITE_CALIBRATION_MODE,
             READ_CALIBRATION_MODE,

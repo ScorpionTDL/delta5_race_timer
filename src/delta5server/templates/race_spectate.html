@@ -11,10 +11,9 @@
 		socket.on('race_status', function (msg) {
 			switch (msg.race_status) {
 				case 1: // Race running
-                    $('button#current_heat').attr('disabled', 'disabled'); 
+					$('button#current_heat').attr('disabled', 'disabled');
 					$('button#start_race').attr('disabled', 'disabled');
-                    $('button#start_race_2min').attr('disabled', 'disabled');
-                    $('button#start_race_no_cal').attr('disabled', 'disabled');
+					$('button#start_race_2min').attr('disabled', 'disabled');
 					$('button#stop_race').removeAttr('disabled');
 					$('button#save_laps').attr('disabled', 'disabled');
 					$('button#clear_laps').attr('disabled', 'disabled');
@@ -22,8 +21,7 @@
 				case 2: // Race stopped, clear or save laps
 					$('button#current_heat').attr('disabled', 'disabled');
 					$('button#start_race').attr('disabled', 'disabled');
-                    $('button#start_race_2min').attr('disabled', 'disabled');
-                    $('button#start_race_no_cal').attr('disabled', 'disabled');
+					$('button#start_race_2min').attr('disabled', 'disabled');
 					$('button#stop_race').attr('disabled', 'disabled');
 					$('button#save_laps').removeAttr('disabled');
 					$('button#clear_laps').removeAttr('disabled');
@@ -31,8 +29,7 @@
 				default: // Waiting to start new race
 					$('button#current_heat').removeAttr('disabled');
 					$('button#start_race').removeAttr('disabled');
-                    $('button#start_race_2min').removeAttr('disabled');
-                    $('button#start_race_no_cal').removeAttr('disabled');
+					$('button#start_race_2min').removeAttr('disabled');
 					$('button#stop_race').attr('disabled', 'disabled');
 					$('button#save_laps').attr('disabled', 'disabled');
 					$('button#clear_laps').attr('disabled', 'disabled');
@@ -57,20 +54,12 @@
 				$('#current_laps_' + i + ' tbody > tr').remove();
 				$.each(node_index.lap_id, function (j, lap_id) { // j is loop num, lap_id is not used
 					// No lap deletion for first lap
-					if (node_index.lap_id[j] == 0) {
+					
 						var $tr = $('<tr>').append(
 							$('<td>').text(node_index.lap_id[j]),
 							$('<td style="padding-right: 0px">').text(node_index.lap_time[j])
 						).appendTo('#current_laps_' + i);
-					}
-					else {
-						var $tr = $('<tr>').append(
-							$('<td>').text(node_index.lap_id[j]),
-							$('<td style="padding-right: 0px">').text(node_index.lap_time[j] + ' ').append(
-								$('<button type="button" class="btn btn-default glyphicon glyphicon-remove delete_lap" style="padding: 0px" data-node="' + i + '" data-lapid="' + node_index.lap_id[j] + '" onclick="this.blur();">')
-							)
-						).appendTo('#current_laps_' + i);
-					}
+				
 
 				});
 			});
@@ -94,7 +83,8 @@
 		});
 
 		socket.on('phonetic_data', function (msg) {
-			var $ttstest = msg.pilot + " lap " + msg.lap + " " + msg.phonetic;
+			//var $ttstest = msg.pilot + " Runde " + msg.lap + " " + msg.phonetic;
+			var $ttstest = msg.pilot + msg.phonetic;
 			speak('<div class="speech">' + $ttstest + '</div> div.speech');				
 		})
 
@@ -116,8 +106,6 @@
 			timer.start(); // Start clock
 		});
 
-
-        
 		socket.on('start_timer_2min', function (msg) {
 			timer.reset({{fix_race_time+1}});
 			timer.mode(0); // Count down mode
@@ -136,12 +124,8 @@
 		$('button#start_race_2min').click(function (event) {
 			socket.emit('start_race_2min');
 			return false;
-    });
-    $('button#start_race_no_cal').click(function (event) {
-        socket.emit('start_race_no_cal');
-        return false;
-    });
-    
+		});
+
 		$('button#stop_race').click(function (event) {
 			socket.emit('stop_race');
 			return false;
@@ -358,15 +342,7 @@
 			};
 			socket.emit('delete_lap', data);
 			return false;
-        });
-
-        $('button#recal').click(function (event) {
-            var data = {
-                node: parseInt($(this).data('node')),
-            };
-            socket.emit('recal',data);
-                return false;
-        });
+		});
 
 		$('.set_current_heat li a').click(function (event) {
 			var data = {
@@ -449,51 +425,6 @@
 </script>
 {% endblock %} {% block content %}
 
-<!--Buttons for controlling the race-->
-<div class="row">
-    <div class='col-xs-12'>
-        <div class="btn-group">
-            <button class="btn btn-default dropdown-toggle current_heat" id="current_heat" type="button" data-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="true">
-                Heat {{ current_heat }}
-            </button>
-            <ul class="dropdown-menu set_current_heat">
-                {% for heat in heats.query.with_entities(heats.heat_id).distinct() %}
-                <li><a role="button" data-heat="{{ heat.heat_id }}">Heat {{ heat.heat_id }}</a></li>
-                {% endfor %}
-            </ul>
-        </div>
-        <button type="button" class="btn btn-default" id="start_race" onclick="this.blur();">Start Race</button>
-        <button type="button" class="btn btn-default" id="start_race_2min" onclick="this.blur();">Start Fixed Time Race</button>
-        <button type="button" class="btn btn-default" id="start_race_no_cal" onclick="this.blur();">Start Race wihtout Calibration</button>
-        {% include "build_timer.html" %}
-        <button type="button" class="btn btn-default" id="stop_race" disabled="disabled" onclick="this.blur();">Stop Race</button>
-        <button type="button" class="btn btn-default" id="save_laps" disabled="disabled" onclick="this.blur();">Save Laps</button>
-        <button type="button" class="btn btn-default" id="clear_laps" disabled="disabled" onclick="this.blur();">Clear Laps</button>
-        <hr>
-        <!--		<button type="button" class="btn btn-default" id="LED_OFF"><img src="..\static\image\LED-off.png"></button>
-            <button type="button" class="btn btn-default" id="LED_RBCYCLE"><img src="..\static\image\LED-rainbow.png"></button>
-            <br>
-            <button type="button" class="btn btn-default" id="LED_1S"><img src="..\static\image\LED-blue.png"></button>
-            <button type="button" class="btn btn-default" id="LED_2S"><img src="..\static\image\LED-orange.png"></button>
-            <button type="button" class="btn btn-default" id="LED_3S"><img src="..\static\image\LED-pink.png"></button>
-            <button type="button" class="btn btn-default" id="LED_4S"><img src="..\static\image\LED-purple.png"></button>
-            <button type="button" class="btn btn-default" id="LED_5S"><img src="..\static\image\LED-yellow.png"></button>
-            <button type="button" class="btn btn-default" id="LED_6S"><img src="..\static\image\LED-cyan.png"></button>
-            <button type="button" class="btn btn-default" id="LED_7S"><img src="..\static\image\LED-green.png"></button>
-            <button type="button" class="btn btn-default" id="LED_8S"><img src="..\static\image\LED-red.png"></button>
-            <br>
-            <button type="button" class="btn btn-default" id="LED_1C"><img src="..\static\image\LED-chase-blue.png"></button>
-            <button type="button" class="btn btn-default" id="LED_2C"><img src="..\static\image\LED-chase-orange.png"></button>
-            <button type="button" class="btn btn-default" id="LED_3C"><img src="..\static\image\LED-chase-pink.png"></button>
-            <button type="button" class="btn btn-default" id="LED_4C"><img src="..\static\image\LED-chase-purple.png"></button>
-            <button type="button" class="btn btn-default" id="LED_5C"><img src="..\static\image\LED-chase-yellow.png"></button>
-            <button type="button" class="btn btn-default" id="LED_6C"><img src="..\static\image\LED-chase-cyan.png"></button>
-            <button type="button" class="btn btn-default" id="LED_7C"><img src="..\static\image\LED-chase-green.png"></button>
-            <button type="button" class="btn btn-default" id="LED_8C"><img src="..\static\image\LED-chase-red.png"></button>
-    -->
-    </div>
-</div>
 
 <!--Space between button row and leaderboard-->
 <p> </p>
@@ -551,7 +482,6 @@
 							<span class="peak_rssi_{{ node }}"></span>
 						</td>
 					</tr>
-                    <tr><td><button type="button" class="btn btn-default" id="recal" onclick="this.blur();" data-node="{{ node }}">Calibrate</button></td></tr>
 				</thead>
 				<tbody>
 				</tbody>
