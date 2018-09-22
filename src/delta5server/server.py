@@ -244,34 +244,32 @@ def index():
          for node in range(RACE.num_nodes):
              node_max_laps = 0
              node_fast_lap = 0
-             for race_round in SavedRace.query.with_entities(SavedRace.round_id).distinct() \
-                 .filter_by(heat_id=heat.heat_id).order_by(SavedRace.round_id):
-                 round_max_lap = DB.session.query(DB.func.max(SavedRace.lap_id)) \
-                     .filter_by(heat_id=heat.heat_id, round_id=race_round.round_id, \
-                     node_index=node).scalar()
+             for race_round in SavedRace.query.with_entities(SavedRace.round_id).distinct().filter_by(heat_id=heat.heat_id).order_by(SavedRace.round_id):
+                 round_max_lap = DB.session.query(DB.func.max(SavedRace.lap_id)).filter_by(heat_id=heat.heat_id, round_id=race_round.round_id, node_index=node).scalar()
                  if round_max_lap is None:
                      round_max_lap = 0
                  else:
-                     round_fast_lap = DB.session.query(DB.func.min(SavedRace.lap_time)) \
-                     .filter(SavedRace.node_index == node, SavedRace.lap_id != 0).scalar()
+                     round_fast_lap = DB.session.query(DB.func.min(SavedRace.lap_time)).filter(SavedRace.node_index == node, SavedRace.lap_id != 0).scalar()
                      if node_fast_lap == 0:
                          node_fast_lap = round_fast_lap
                      if node_fast_lap != 0 and round_fast_lap < node_fast_lap:
                          node_fast_lap = round_fast_lap
                  node_max_laps = node_max_laps + round_max_lap
              max_laps.append(node_max_laps)
-             fast_laps.append(time_format(node_fast_lap))
+            # fast_laps.append(time_format(node_fast_lap))
          heat_max_laps.append(max_laps)
          heat_fast_laps.append(fast_laps)
-    return render_template('rounds.html', num_nodes=RACE.num_nodes, rounds=SavedRace, \
-        pilots=Pilot, heats=Heat \
-        , heat_max_laps=heat_max_laps, heat_fast_laps=heat_fast_laps)
+    return render_template('rounds.html', num_nodes=RACE.num_nodes, rounds=SavedRace, pilots=Pilot, heats=Heat )
 
 @APP.route('/laps')
 def laps():
 
     total_top_fastes_laps = []
     all_laps_sorted_by_time = []
+    rounds_per_pilot = []
+    avg_50_laptime_array = []
+    avg_80_laptime_array = []
+    avg_90_laptime_array = []
     current_lap_counter = 0
     for lap in SavedRace.query.filter(SavedRace.lap_id!=0).order_by(SavedRace.lap_time):
       total_top_fastes_laps.append(lap)
@@ -282,9 +280,29 @@ def laps():
     for lap in SavedRace.query.order_by(SavedRace.lap_time):
      all_laps_sorted_by_time.append(lap)
 
-
-
-    return render_template('laps.html', num_nodes=RACE.num_nodes, rounds=SavedRace, pilots=Pilot, heats=Heat,  total_top_fastes_laps=total_top_fastes_laps)
+    for pilot in Pilot.query:
+     rounds_current_pilot = SavedRace.query.filter(SavedRace.lap_id!=0, SavedRace.pilot_id==pilot.pilot_id).count()
+     rounds_per_pilot.append(rounds_current_pilot)
+     lapcount = 0
+     avg_50_laptime = 0
+     avg_80_laptime = 0
+     avg_90_laptime = 0
+     for lap in SavedRace.query.filter(SavedRace.lap_id!=0,SavedRace.pilot_id==pilot.pilot_id).order_by(SavedRace.lap_time):
+         lapcount = lapcount +1
+         if lapcount <= rounds_current_pilot * 0.5:
+             avg_50_laptime = avg_50_laptime + lap.lap_time
+         if lapcount <= rounds_current_pilot * 0.8:
+             avg_80_laptime = avg_80_laptime + lap.lap_time
+         if lapcount <= rounds_current_pilot * 0.9:
+             avg_90_laptime = avg_90_laptime + lap.lap_time
+     if rounds_current_pilot > 0:
+         avg_50_laptime = avg_50_laptime /  int(rounds_current_pilot * 0.5)
+         avg_80_laptime = avg_80_laptime /  int(rounds_current_pilot * 0.8)
+         avg_90_laptime = avg_90_laptime /  int(rounds_current_pilot * 0.9)
+     avg_50_laptime_array.append(time_format(avg_50_laptime))
+     avg_80_laptime_array.append(time_format(avg_80_laptime))
+     avg_90_laptime_array.append(time_format(avg_90_laptime))
+    return render_template('laps.html', num_nodes=RACE.num_nodes, rounds=SavedRace, pilots=Pilot, heats=Heat,  total_top_fastes_laps=total_top_fastes_laps,rounds_per_pilot=rounds_per_pilot, avg_50_laptime_array=avg_50_laptime_array, avg_80_laptime_array=avg_80_laptime_array, avg_90_laptime_array=avg_90_laptime_array)
 
 @APP.route('/heats')
 def heats():

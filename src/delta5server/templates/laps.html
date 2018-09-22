@@ -33,9 +33,16 @@
         <div class='panel panel-default'>
             <div class="panel-heading">
                 <h4 class="panel-title ">{{ pilot.callsign}}</h4>
+
+
+                # of laps:{{rounds_per_pilot[pilot.pilot_id]}}<br />
+                50% avg: {{avg_50_laptime_array[pilot.pilot_id]}}<br />
+                80% avg: {{avg_80_laptime_array[pilot.pilot_id]}}<br />
+                90% avg: {{avg_90_laptime_array[pilot.pilot_id]}}<br />
             </div>
             <table class="table">
                 <tbody>
+                    <tr><td></td></tr>
                     {% for lap in rounds.query.filter(rounds.pilot_id==pilot.pilot_id,rounds.lap_id!=0).order_by(rounds.lap_time) %}
                     <tr>
                         <td>

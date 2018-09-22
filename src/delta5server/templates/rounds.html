@@ -1,31 +1,49 @@
 {% extends "layout.html" %} {% block title %}Rounds{% endblock %} {% block head %} {% endblock %} {% block content %}
 
 <!--Display the rounds-->
+{% set fastes_lap_of_total = rounds.query.filter(rounds.lap_id>0).order_by(rounds.lap_time).first().id %}
 {% for heat in rounds.query.with_entities(rounds.heat_id).distinct().order_by(rounds.heat_id) %}
+{% set fastes_lap_of_heat = rounds.query.filter(rounds.heat_id==heat.heat_id,rounds.lap_id>0).order_by(rounds.lap_time).first().id %}
 <h4>Heat {{ heat.heat_id }}</h4>
 {% for round in rounds.query.with_entities(rounds.round_id).distinct().filter_by(heat_id=heat.heat_id).order_by(rounds.round_id)
 %}
+ {% set fastes_lap_of_round = rounds.query.filter(rounds.heat_id==heat.heat_id, rounds.round_id==round.round_id,rounds.lap_id>0).order_by(rounds.lap_time).first().id %}
 <h5>Round {{ round.round_id }}</h5>
 <div class="row">
     {% for node in range(num_nodes) %}
+    {% set fastes_lap_of_pilot = rounds.query.filter(rounds.heat_id==heat.heat_id, rounds.round_id==round.round_id, rounds.node_index==node, rounds.lap_id>0).order_by(rounds.lap_time).first().id %}
     <div class="col-xs-8 col-sm-4 col-md-2">
         <div class='panel panel-default'>
             <div class="panel-heading">
                 <h4 class="panel-title ">
-                    {{ pilots.query.filter_by( pilot_id=heats.query.filter_by(heat_id=heat.heat_id,node_index=node).first().pilot_id ).first().callsign
-                    }}
+                    {{ pilots.query.filter_by( pilot_id=heats.query.filter_by(heat_id=heat.heat_id,node_index=node).first().pilot_id ).first().callsign}}
+
                 </h4>
             </div>
             <table class="table">
                 <tbody>
+
                     {% for lap in rounds.query.filter_by(heat_id=heat.heat_id, round_id=round.round_id, node_index=node).all() %}
-                    <tr>
+                    <tr {% if fastes_lap_of_pilot == lap.id %}
+                        style="font-weight:bold"
+                        {% endif %}
+
+                        {% if fastes_lap_of_total == lap.id %}
+                        bgcolor="#ADFF2F"
+                        {% elif fastes_lap_of_heat == lap.id %}
+                        bgcolor="#90EE90"
+                        {% elif fastes_lap_of_round == lap.id %}
+                        bgcolor="#F0FFF0"
+                        {% endif %}>
+
                         <td>
+
                             {{ lap.lap_id }}
                         </td>
                         <td>
                             {{ lap.lap_time_formatted }}
                         </td>
+
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -39,34 +57,33 @@
 <!--More generic data summary needed, see server.py notes-->
 <!--<h5>Heat {# heat.heat_id #} Summary</h5>
 <div class="row">
-	<div class='col-xs-12 col-md-6'>
-		<div class='panel panel-default'>
-			<table class="table">
-				<thead>
-					<tr>
-						<th>Pilot</th>
-						<th>Laps</th>
-						<th>Fastest</th>
-					</tr>
-				</thead>
-				<tbody>
+    <div class='col-xs-12 col-md-6'>
+        <div class='panel panel-default'>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Pilot</th>
+                        <th>Laps</th>
+                        <th>Fastest</th>
+                    </tr>
+                </thead>
+                <tbody>
                 {# for node in range(num_nodes) #}
-					<tr>
-						<td>
+                    <tr>
+                        <td>
                             {# pilots.query.filter_by(pilot_id=heats.query.filter_by(heat_id=heat.heat_id,node_index=node).first().pilot_id ).first().callsign #}
                         </td>
-						<td>
+                        <td>
                             {# heat_max_laps[heat.heat_id-1][node] #}
                         </td>
-						<td>
+                        <td>
                             {# heat_fast_laps[heat.heat_id-1][node] #}
                         </td>
-					</tr>                    
+                    </tr>
                 {# endfor #}
-				</tbody>
-			</table>
-		</div>
-	</div>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>-->
-
 {% endfor %} {% endblock %}
