@@ -6,7 +6,27 @@
 	$(document).ready(function () {
 		var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-		var buzzer = $('#buzzer')[0];
+        var buzzer = $('#buzzer')[0];
+
+        var callout_lap = getCookie("callout_lap");
+        if (callout_lap == "true") {
+            document.getElementById('callout_lap').checked = true;
+        }
+
+        function getCookie(cname) {
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
 
 		socket.on('race_status', function (msg) {
 			switch (msg.race_status) {
@@ -93,9 +113,11 @@
 			}
 		});
 
-		socket.on('phonetic_data', function (msg) {
-           // var $ttstest = msg.pilot + " lap " + msg.lap + " " + msg.phonetic;
-            var $ttstest = msg.pilot +  msg.phonetic;
+        socket.on('phonetic_data', function (msg) {
+            var $ttstest = msg.pilot + " " + msg.phonetic;
+            if (document.getElementById('callout_lap').checked == true) {
+                $ttstest = msg.pilot + " " + document.getElementById("lap_text").value +" " + msg.lap + " " + msg.phonetic;
+            }     
 			speak('<div class="speech">' + $ttstest + '</div> div.speech');				
 		})
 
@@ -128,6 +150,16 @@
 		socket.on('stop_timer', function (msg) {
 			timer.stop();
 		});
+
+
+    $('#callout_lap').click(function (event) {
+        if (document.getElementById('callout_lap').checked) {
+            document.cookie = "callout_lap=true";
+        }
+        else {
+            document.cookie = "callout_lap=false";
+        }
+    });
 
 		$('button#start_race').click(function (event) {
 			socket.emit('start_race');
@@ -471,7 +503,7 @@
         <button type="button" class="btn btn-default" id="stop_race" disabled="disabled" onclick="this.blur();">Stop Race</button>
         <button type="button" class="btn btn-default" id="save_laps" disabled="disabled" onclick="this.blur();">Save Laps</button>
         <button type="button" class="btn btn-default" id="clear_laps" disabled="disabled" onclick="this.blur();">Clear Laps</button>
-        <hr>
+
         <!--		<button type="button" class="btn btn-default" id="LED_OFF"><img src="..\static\image\LED-off.png"></button>
             <button type="button" class="btn btn-default" id="LED_RBCYCLE"><img src="..\static\image\LED-rainbow.png"></button>
             <br>
@@ -493,6 +525,11 @@
             <button type="button" class="btn btn-default" id="LED_7C"><img src="..\static\image\LED-chase-green.png"></button>
             <button type="button" class="btn btn-default" id="LED_8C"><img src="..\static\image\LED-chase-red.png"></button>
     -->
+        <br /><input type="checkbox" id="callout_lap" name="callout_lap" value="callout_lap"> Callout lap numbers
+        <br />Text to speak for Lap: <input id="lap_text" type="text" name="lap_text" value="Runde">
+        
+        <br>
+        <hr>
     </div>
 </div>
 

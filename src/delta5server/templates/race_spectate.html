@@ -6,7 +6,28 @@
 	$(document).ready(function () {
 		var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-		var buzzer = $('#buzzer')[0];
+        var buzzer = $('#buzzer')[0];
+
+        var callout_lap = getCookie("spectate_callout_lap");
+        if (callout_lap == "true") {
+            document.getElementById('callout_lap').checked = true;
+        }
+
+        function getCookie(cname) {
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
 
 		socket.on('race_status', function (msg) {
 			switch (msg.race_status) {
@@ -54,12 +75,12 @@
 				$('#current_laps_' + i + ' tbody > tr').remove();
 				$.each(node_index.lap_id, function (j, lap_id) { // j is loop num, lap_id is not used
 					// No lap deletion for first lap
-					
+
 						var $tr = $('<tr>').append(
 							$('<td>').text(node_index.lap_id[j]),
 							$('<td style="padding-right: 0px">').text(node_index.lap_time[j])
 						).appendTo('#current_laps_' + i);
-				
+
 
 				});
 			});
@@ -82,17 +103,19 @@
 			}
 		});
 
-		socket.on('phonetic_data', function (msg) {
-			//var $ttstest = msg.pilot + " Runde " + msg.lap + " " + msg.phonetic;
-			var $ttstest = msg.pilot + msg.phonetic;
-			speak('<div class="speech">' + $ttstest + '</div> div.speech');				
-		})
+        socket.on('phonetic_data', function (msg) {
+            var $ttstest = msg.pilot + " " + msg.phonetic;
+            if (document.getElementById('callout_lap').checked == true) {
+                $ttstest = msg.pilot + " " + document.getElementById("lap_text").value + " " + msg.lap + " " + msg.phonetic;
+            }
+            speak('<div class="speech">' + $ttstest + '</div> div.speech');
+        })
 
 		socket.on('language_data', function (msg) {
 			var $testlang = msg.language;
 			sellang = $testlang;
 		})
-		
+
 		socket.on('current_heat', function (msg) {
 			$('.current_heat').html('Heat ' + msg.current_heat);
 			for (i = 0; i < msg.callsign.length; i++) {
@@ -115,6 +138,16 @@
 		socket.on('stop_timer', function (msg) {
 			timer.stop();
 		});
+
+
+    $('#callout_lap').click(function (event) {
+        if (document.getElementById('callout_lap').checked) {
+            document.cookie = "spectate_callout_lap=true";
+        }
+        else {
+            document.cookie = "spectate_callout_lap=false";
+        }
+    });
 
 		$('button#start_race').click(function (event) {
 			socket.emit('start_race');
@@ -158,7 +191,7 @@
                 socket.emit('LED_solid', data);
                 return false;
 		});
-		
+
 		$('button#LED_1S').click(function (event) { //Node 1 Solid Blue
                 var data = {
                                 red: parseInt(0),
@@ -168,7 +201,7 @@
                 socket.emit('LED_solid', data);
                 return false;
 		});
-		
+
 		$('button#LED_2S').click(function (event) { //Node 2 Solid Orange
                 var data = {
                                 red: parseInt(255),
@@ -178,7 +211,7 @@
                 socket.emit('LED_solid', data);
                 return false;
 		});
-		
+
 		$('button#LED_3S').click(function (event) { //Node 3 Solid Pink
                 var data = {
                                 red: parseInt(255),
@@ -188,7 +221,7 @@
                 socket.emit('LED_solid', data);
                 return false;
 		});
-		
+
 		$('button#LED_4S').click(function (event) { //Node 4 Solid Purple
                 var data = {
                                 red: parseInt(150),
@@ -248,7 +281,7 @@
                 socket.emit('LED_chase', data);
                 return false;
 		});
-		
+
 		$('button#LED_2C').click(function (event) { //Node 2 Chase Orange
                 var data = {
                                 red: parseInt(255),
@@ -258,7 +291,7 @@
                 socket.emit('LED_chase', data);
                 return false;
 		});
-		
+
 		$('button#LED_3C').click(function (event) { //Node 3 Chase Pink
                 var data = {
                                 red: parseInt(255),
@@ -268,7 +301,7 @@
                 socket.emit('LED_chase', data);
                 return false;
 		});
-		
+
 		$('button#LED_4C').click(function (event) { //Node 4 Chase Purple
                 var data = {
                                 red: parseInt(150),
@@ -319,22 +352,22 @@
                 return false;
 		});
 
-		
+
 		$('button#LED_RB').click(function (event) {
 			socket.emit('LED_RB');
 			return false;
 		});
-		
+
 		$('button#LED_RBCYCLE').click(function (event) {
 			socket.emit('LED_RBCYCLE');
 			return false;
 		});
-		
+
 		$('button#LED_RBCHASE').click(function (event) {
 			socket.emit('LED_RBCHASE');
 			return false;
 		});
-		
+
 		$(document).on("click", ".delete_lap", function (event) { // Needed for buttons added after document load
 			var data = {
 				node: parseInt($(this).data('node')),
@@ -373,7 +406,7 @@
 				break;
 			case 6:
 				$(obj).articulate('setVoice','name','Google Deutsch').articulate('speak');
-				break;			
+				break;
 			case 7:
 				$(obj).articulate('setVoice','name','Google español').articulate('speak');
 				break;
@@ -425,70 +458,70 @@
 </script>
 {% endblock %} {% block content %}
 
-
+<br /><input type="checkbox" id="callout_lap" name="callout_lap" value="callout_lap"> Callout lap numbers
+<br />Text to speak for Lap: <input id="lap_text" type="text" name="lap_text" value="Runde">
 <!--Space between button row and leaderboard-->
 <p> </p>
 
 <!--Display the race leaderboard-->
 <div class="row">
-	<div class='col-xs-16 col-md-12'>
-		<div class='panel panel-default'>
-			<table class="table" id="leaderboard">
-				<thead>
-					<tr>
-						<th>Pos.</th>
-						<th>Pilot</th>
-						<th>Laps</th>
-						<th>Last Lap</th>
-						<th>Behind</th>
-						<th>Average</th>
-						<th>Fastest</th>
-						<th>Total</th>
-					</tr>
-				</thead>
-				<tbody>
-				</tbody>
-			</table>
-		</div>
-	</div>
+    <div class='col-xs-16 col-md-12'>
+        <div class='panel panel-default'>
+            <table class="table" id="leaderboard">
+                <thead>
+                    <tr>
+                        <th>Pos.</th>
+                        <th>Pilot</th>
+                        <th>Laps</th>
+                        <th>Last Lap</th>
+                        <th>Behind</th>
+                        <th>Average</th>
+                        <th>Fastest</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!--Display the current laps-->
 <div class="row">
-	{% for node in range(num_nodes) %}
-	<div class="col-xs-4 col-md-2">
-		<div class='panel panel-default'>
-			<div class="panel-heading">
-				<h4 class="panel-title callsign_{{ node }}">
-					{{ pilots.query.filter_by( pilot_id=heats.query.filter_by(heat_id=current_heat,node_index=node).first().pilot_id ).first().callsign
-					}}
-				</h4>
-			</div>
-			<div class="panel-heading">
-				<p class="panel-title">
-					<small>{{ channels[node] }} {{ frequencies[node] }}</small>
-				</p>
-				<!-- Comment-out <p></p> above and enable 'button' below to get simulate-lap buttons for debug testing -->
-				<!--
-				<button type="button" class="btn btn-default" id="simulate_lap" data-node="{{ node }}" onclick="this.blur();"><small>{{ channels[node] }} {{ frequencies[node] }}</small></button>
-				-->
-			</div>
-			<table class="table" id="current_laps_{{ node }}">
-				<thead>
-					<tr>
-						<td colspan="2">
-							<span class="current_rssi_{{ node }}"></span> /
-							<span class="trigger_rssi_{{ node }}"></span> /
-							<span class="peak_rssi_{{ node }}"></span>
-						</td>
-					</tr>
-				</thead>
-				<tbody>
-				</tbody>
-			</table>
-		</div>
-	</div>
-	{% endfor %}
+    {% for node in range(num_nodes) %}
+    <div class="col-xs-4 col-md-2">
+        <div class='panel panel-default'>
+            <div class="panel-heading">
+                <h4 class="panel-title callsign_{{ node }}">
+                    {{
+ pilots.query.filter_by( pilot_id=heats.query.filter_by(heat_id=current_heat,node_index=node).first().pilot_id ).first().callsign
+                    }}
+                </h4>
+            </div>
+            <div class="panel-heading">
+                <p class="panel-title">
+                    <small>{{ channels[node] }} {{ frequencies[node] }}</small>
+                </p>
+                <!-- Comment-out <p></p> above and enable 'button' below to get simulate-lap buttons for debug testing -->
+                <!--
+                <button type="button" class="btn btn-default" id="simulate_lap" data-node="{{ node }}" onclick="this.blur();"><small>{{ channels[node] }} {{ frequencies[node] }}</small></button>
+                -->
+            </div>
+            <table class="table" id="current_laps_{{ node }}">
+                <thead>
+                    <tr>
+                        <td colspan="2">
+                            <span class="current_rssi_{{ node }}"></span> /
+                            <span class="trigger_rssi_{{ node }}"></span> /
+                            <span class="peak_rssi_{{ node }}"></span>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 {% endblock %}
