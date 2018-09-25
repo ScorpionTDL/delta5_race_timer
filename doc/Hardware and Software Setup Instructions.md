@@ -76,6 +76,7 @@ Install python and the python drivers for the GPIO.
 ```
 sudo apt-get install python-dev
 sudo apt-get install python-rpi.gpio
+sudo apt-get install libffi-dev
 ```
 
 Final system update and upgrade.
