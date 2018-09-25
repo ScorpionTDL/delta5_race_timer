@@ -963,11 +963,11 @@ def emit_current_heat():
         'callsign': callsigns
     })
 
-def emit_phonetic_data(pilot_id, lap_id, lap_time):
+def emit_phonetic_data(pilot_id, lap_id, lap_time, node_index):
     '''Emits phonetic data.'''
     phonetic_time = phonetictime_format(lap_time)
     phonetic_name = Pilot.query.filter_by(pilot_id=pilot_id).first().phonetic
-    SOCKET_IO.emit('phonetic_data', {'pilot': phonetic_name, 'lap': lap_id, 'phonetic': phonetic_time})
+    SOCKET_IO.emit('phonetic_data', {'pilot': phonetic_name, 'lap': lap_id, 'phonetic': phonetic_time, 'node_index': node_index})
 
 def emit_language_data():
     '''Emits language.'''
@@ -1073,7 +1073,7 @@ def pass_record_callback(node, ms_since_lap):
             emit_current_laps() # Updates all laps on the race page
             emit_leaderboard() # Updates leaderboard
             if lap_id > 0: 
-				emit_phonetic_data(pilot_id, lap_id, lap_time) # Sends phonetic data to be spoken
+				emit_phonetic_data(pilot_id, lap_id, lap_time, node.index) # Sends phonetic data to be spoken
             if node.index==0:
 				theaterChase(strip, Color(0,0,255))  #BLUE theater chase
             elif node.index==1:

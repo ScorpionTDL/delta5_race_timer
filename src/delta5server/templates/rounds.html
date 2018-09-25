@@ -54,6 +54,7 @@
 </div>
 {% endfor %}
 
+
 <!--More generic data summary needed, see server.py notes-->
 <!--<h5>Heat {# heat.heat_id #} Summary</h5>
 <div class="row">
@@ -86,4 +87,21 @@
         </div>
     </div>
 </div>-->
-{% endfor %} {% endblock %}
+{% endfor %} 
+<div class="col-xs-8 col-sm-4 col-md-2">
+    <div class='panel panel-default'>
+        <div class="panel-heading">
+            legend
+        </div>
+        <table class="table">
+            <tbody>
+                <tr style="font-weight:bold"><td>Fastes Lap for this Pilot for this Round</td></tr>
+                <tr style="font-weight:bold" bgcolor="#F0FFF0"><td> Fastes Lap of this Round</td></tr>
+                <tr style="font-weight:bold" bgcolor="#90EE90"><td>Fastes Lap of this Heat</td></tr>
+                <tr style="font-weight:bold" bgcolor="#ADFF2F"><td>Fastes Lap of all Rounds and Heats</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
