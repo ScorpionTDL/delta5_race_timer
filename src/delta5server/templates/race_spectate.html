@@ -158,7 +158,7 @@
 
 
     $('#callout_lap').click(function (event) {
-        if (document.getElementById('spectate_callout_lap').checked) {
+        if (document.getElementById('callout_lap').checked) {
             document.cookie = "spectate_callout_lap=true";
         }
         else {
@@ -174,10 +174,10 @@
 
     $('#callout_name').click(function (event) {
         if (document.getElementById('callout_name').checked) {
-            document.cookie = "callout_name=true";
+            document.cookie = "spectate_callout_name=true";
         }
         else {
-            document.cookie = "callout_name=false";
+            document.cookie = "spectate_callout_name=false";
         }
     });
 
