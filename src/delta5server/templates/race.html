@@ -202,6 +202,25 @@
 			socket.emit('start_race_2min');
 			return false;
     });
+
+    
+
+    $('button#mute_all').click(function (event) {
+        var mygroup = document.muteForm.chk_mute;
+        for (i = 0; i < mygroup.length; i++) {
+            mygroup[i].checked = true;
+        }  
+    });
+
+    $('button#unmute_all').click(function (event) {
+        var mygroup = document.muteForm.chk_mute;
+        for (i = 0; i < mygroup.length; i++) {
+            mygroup[i].checked = false;
+        }
+    });
+
+
+
     $('button#start_race_no_cal').click(function (event) {
         socket.emit('start_race_no_cal');
         return false;
@@ -560,6 +579,7 @@
         <br /><input type="checkbox" id="callout_name" name="callout_name" value="callout_name"> Callout pilot name
         <br /><input type="checkbox" id="callout_lap" name="callout_lap" value="callout_lap"> Callout lap numbers
         <br />Text to speak for Lap: <input id="lap_text" type="text" name="lap_text" value="Runde">
+        <br /> <button type="button" class="btn btn-default" id="mute_all" onclick="this.blur();">mute all</button>  <button type="button" class="btn btn-default" id="unmute_all" onclick="this.blur();">unmute all</button>
 
         <br>
         <hr>
