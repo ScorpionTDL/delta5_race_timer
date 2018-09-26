@@ -11,6 +11,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 import gevent
 import gevent.monkey
+
+import thread
+
 gevent.monkey.patch_all()
 
 sys.path.append('../delta5interface')
@@ -1027,7 +1030,13 @@ def phonetictime_format(millis):
 def pass_record_callback(node, ms_since_lap):
     '''Handles pass records from the nodes.'''
     server_log('Raw pass record: Node: {0}, MS Since Lap: {1}'.format(node.index, ms_since_lap))
-    emit_node_data() # For updated triggers and peaks
+    thread.start_new_thread(pass_record_callback_thread, (node, ms_since_lap))
+   # pass_record_callback_thread(node, ms_since_lap)
+
+
+def pass_record_callback_thread(node, ms_since_lap):
+    server_log('Processing in thread record: Node: {0}, MS Since Lap: {1}'.format(node.index, ms_since_lap))
+#    emit_node_data() # For updated triggers and peaks
 
     if RACE.race_status is 1:
         # Get the current pilot id on the node
