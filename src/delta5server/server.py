@@ -59,6 +59,7 @@ LED_INVERT     = False   # True to invert the signal (when using NPN transistor 
 LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 LED_STRIP      = ws.WS2811_STRIP_GRB   # Strip type and colour ordering
 
+
 # LED one color ON/OFF
 def onoff(strip, color):
 	for i in range(strip.numPixels()):
@@ -195,6 +196,10 @@ class LastProfile(DB.Model):
 class FixTimeRace(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True)
     race_time_sec = DB.Column(DB.Integer, nullable=False)
+
+class MinLapTime(DB.Model):
+    id = DB.Column(DB.Integer, primary_key=True)
+    min_lap_time_sec = DB.Column(DB.Integer, nullable=False)
 
 #
 # Authentication
@@ -353,6 +358,7 @@ def settings():
                            last_profile =  LastProfile,
                            profiles = Profiles,
                            current_fix_race_time=FixTimeRace.query.get(1).race_time_sec,
+                           current_min_lap_time=MinLapTime.query.get(1).min_lap_time_sec,
 						   lang_id=RACE.lang_id)
 
 # Debug Routes
@@ -615,6 +621,14 @@ def on_set_fix_race_time(data):
     fix_race_time.race_time_sec = race_time
     DB.session.commit()
     server_log("set fixed time race to %s seconds" % race_time)
+
+@SOCKET_IO.on("set_min_lap_time")
+def on_set_min_lap_time(data):
+    lap_time = data['min_lap_time']
+    min_lap_time = MinLapTime.query.get(1)
+    min_lap_time.min_lap_time_sec = lap_time
+    DB.session.commit()
+    server_log("set min lap time to %s seconds" % min_lap_time)
 
     # @SOCKET_IO.on('clear_rounds')
 # def on_reset_heats():
@@ -981,6 +995,11 @@ def emit_current_fix_race_time():
     race_time_sec = FixTimeRace.query.get(1).race_time_sec
     SOCKET_IO.emit('set_fix_race_time',{ fix_race_time: race_time_sec})
 
+def emit_current_min_lap_time():
+    ''' Emit current fixed time race time '''
+    min_lap_time = FixTimeRace.query.get(1).min_lap_time_sec
+    SOCKET_IO.emit('set_min_lap_time',{ min_lap_time: min_lap_time})
+
 def emit_phonetic_text(phtext):
     '''Emits given phonetic text.'''
     SOCKET_IO.emit('speak_phonetic_text', {'text': phtext})
@@ -1036,7 +1055,7 @@ def pass_record_callback(node, ms_since_lap):
 
 def pass_record_callback_thread(node, ms_since_lap):
     server_log('Processing in thread record: Node: {0}, MS Since Lap: {1}'.format(node.index, ms_since_lap))
-#    emit_node_data() # For updated triggers and peaks
+    emit_node_data() # For updated triggers and peaks
 
     if RACE.race_status is 1:
         # Get the current pilot id on the node
@@ -1061,14 +1080,14 @@ def pass_record_callback_thread(node, ms_since_lap):
                 node_index=node.index, lap_id=last_lap_id).first().lap_time_stamp
             # New lap time is the difference between the current time stamp and the last
             lap_time = lap_time_stamp - last_lap_time_stamp
-            
-            #server_log('lap time calculated for Node: {0}, lap id: {1}, lap time: {2}'.format(node.index, lap_id,lap_time))
-            if lap_time < 5000:
-				server_log('lap time below 5, needs to be ignored')
+            min_lap_time = MinLapTime.query.get(1).min_lap_time_sec
+            server_log('mit lap time is set to: {0}'.format(min_lap_time)) 
+            if lap_time < (min_lap_time*1000):
+				server_log('lap time below {0}, needs to be ignored'.format(min_lap_time))
 				to_be_added = False
             else:
 				lap_id = last_lap_id + 1
-				server_log('time above threshold, valid round')
+				server_log('time above threshold of {0}s, valid round'.format(min_lap_time))
 				
         if to_be_added == True: 
         # Add the new lap to the database
@@ -1138,6 +1157,7 @@ def db_init():
     db_reset_profile()
     db_reset_default_profile()
     db_reset_fix_race_time()
+    db_reset_min_lap_time()
     server_log('Database initialized')
 
 def db_reset():
@@ -1150,6 +1170,7 @@ def db_reset():
     db_reset_profile()
     db_reset_default_profile()
     db_reset_fix_race_time()
+    db_reset_min_lap_time()
     server_log('Database reset')
 
 def db_reset_keep_pilots():
@@ -1289,6 +1310,13 @@ def db_reset_fix_race_time():
     DB.session.add(FixTimeRace(race_time_sec=120))
     DB.session.commit()
     server_log("Database set fixed time race to 120 sec (2 minutes)")
+
+def db_reset_min_lap_time():
+    DB.session.query(MinLapTime).delete()
+    DB.session.add(MinLapTime(min_lap_time_sec=5))
+    DB.session.commit()
+    server_log("Database set min lap race to 5 sec ")
+    
 #
 # Program Initialize
 #

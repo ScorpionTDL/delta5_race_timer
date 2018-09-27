@@ -12,7 +12,7 @@
 <div class="row">
     {% for node in range(num_nodes) %}
     {% set fastes_lap_of_pilot = rounds.query.filter(rounds.heat_id==heat.heat_id, rounds.round_id==round.round_id, rounds.node_index==node, rounds.lap_id>0).order_by(rounds.lap_time).first().id %}
-    <div class="col-xs-8 col-sm-4 col-md-2">
+    <div class="col-xs-8 col-sm-8 col-md-3">
         <div class='panel panel-default'>
             <div class="panel-heading">
                 <h4 class="panel-title ">
@@ -39,6 +39,11 @@
                         <td>
 
                             {{ lap.lap_id }}
+                        </td>
+                        <td>
+                            <script>
+                            document.write( moment({{ lap.lap_time_stamp }}).format("mm:ss.SS")) ;
+                            </script>
                         </td>
                         <td>
                             {{ lap.lap_time_formatted }}
@@ -87,7 +92,7 @@
         </div>
     </div>
 </div>-->
-{% endfor %} 
+{% endfor %}
 <div class="col-xs-8 col-sm-4 col-md-2">
     <div class='panel panel-default'>
         <div class="panel-heading">

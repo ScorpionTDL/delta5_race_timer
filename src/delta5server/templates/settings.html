@@ -10,66 +10,66 @@
 			break;
 		case 3:
 			$('.sel_lang').html("US English en-US");
-			break;		
+			break;
 		case 4:
 			$('.sel_lang').html("UK English Female en-GB");
-			break;		
+			break;
 		case 5:
 			$('.sel_lang').html("UK English Male en-GB");
-			break;		
+			break;
 		case 6:
 			$('.sel_lang').html("Deutsch de-DE");
-			break;		
+			break;
 		case 7:
 			$('.sel_lang').html("español es-ES");
-			break;		
+			break;
 		case 8:
 			$('.sel_lang').html("español de Estados Unidos es-US");
-			break;		
+			break;
 		case 9:
 			$('.sel_lang').html("français fr-FR");
-			break;		
+			break;
 		case 10:
 			$('.sel_lang').html("हिन्दी hi-IN");
-			break;		
+			break;
 		case 11:
 			$('.sel_lang').html("Bahasa Indonesia id-ID");
-			break;		
+			break;
 		case 12:
 			$('.sel_lang').html("italiano it-IT");
-			break;		
+			break;
 		case 13:
 			$('.sel_lang').html("日本語 ja-JP");
-			break;		
+			break;
 		case 14:
 			$('.sel_lang').html("한국의 ko-KR");
-			break;		
+			break;
 		case 15:
 			$('.sel_lang').html("Nederlands nl-NL");
-			break;		
+			break;
 		case 16:
 			$('.sel_lang').html("polski pl-PL");
-			break;		
+			break;
 		case 17:
 			$('.sel_lang').html("português do Brasil pt-BR");
-			break;		
+			break;
 		case 18:
 			$('.sel_lang').html("русский ru-RU");
-			break;		
+			break;
 		case 19:
 			$('.sel_lang').html("國語（臺灣） zh-TW");
-			break;		
+			break;
 		default:
 			$('.sel_lang').html("None");
 			break;
-		}		
+		}
 	}
-	
+
 	$(document).ready(function () {
 		var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
 		voice_label( {{ lang_id }} );
-		
+
 		socket.on('heartbeat', function (msg) {
 			for (i = 0; i < msg.current_rssi.length; i++) {
 				$('.current_rssi_' + i).html(msg.current_rssi[i]);
@@ -111,7 +111,7 @@
 				$('.name_' + i).attr('value', msg.name[i]);
 			}
 		});
-		
+
 		socket.on('language_data', function (msg) {
 			var $langid = msg.language;
 			sellang = $langid;
@@ -120,9 +120,9 @@
 
 		socket.on('speak_phonetic_text', function (msg) {
 			var $ttstext = msg.text;
-			speak('<div class="speech">' + $ttstext + '</div> div.speech');				
+			speak('<div class="speech">' + $ttstext + '</div> div.speech');
 		})
-		
+
 		$('.set_frequency li a').click(function (event) {
 			var data = {
 				node: parseInt($(this).data('node')),
@@ -136,8 +136,8 @@
 				language: parseInt($(this).data('language'))
 			};
 			socket.emit('set_language', data);
-		})		
-		
+		})
+
 		$('.set_pilot_position li a').click(function (event) {
 			var data = {
 				heat: parseInt($(this).data('heat')),
@@ -161,8 +161,8 @@
 				phonetic: $(this).val()
 			};
 			socket.emit('set_pilot_phonetic', data);
-		})		
-		
+		})
+
 		$('.set_pilot_name').change(function (event) {
 			var data = {
 				pilot_id: parseInt($(this).data('pilot_id')),
@@ -274,6 +274,13 @@
 			socket.emit('set_fix_race_time', data);
 		})
 
+    	$('.set_min_lap_time').change(function (event) {
+		var data = {
+			min_lap_time: parseInt($(this).val())
+		};
+		socket.emit('set_min_lap_time', data);
+		})
+
 	});
 
 	var sellang = {{ lang_id }};
@@ -297,7 +304,7 @@
 				break;
 			case 6:
 				$(obj).articulate('setVoice','name','Google Deutsch').articulate('speak');
-				break;			
+				break;
 			case 7:
 				$(obj).articulate('setVoice','name','Google español').articulate('speak');
 				break;
@@ -353,252 +360,273 @@
 <!--Display node data-->
 <h4>Nodes</h4>
 <div class="row">
-	{% for node in range(num_nodes) %}
-	<div class='col-xs-8 col-sm-4 col-md-2'>
-		<div class='panel panel-default'>
-			<div class="panel-heading">
-				<h4 class="panel-title">{{ node + 1 }}</h4>
-			</div>
-			<table class="table">
-				<tr>
-					<td colspan="2">
-						Freq.
-						<!--Need to have two drop downs, band and frequency, one drop is long of a list-->
-						<div class="btn-group">
-							<button class="btn btn-default dropdown-toggle channel_{{ node }}" type="button" data-toggle="dropdown" aria-haspopup="true"
-							 aria-expanded="true"></button>
-							<ul class="dropdown-menu set_frequency">
-								{% for frequency in frequencies.query.all() %}
-								<li><a role="button" data-node="{{ node }}" data-frequency="{{ frequency.frequency }}">{{ frequency.channel }} {{ frequency.frequency }}</a></li>
-								{% endfor %}
-							</ul>
-						</div>
-					</td>
-				</tr>
-				<tr>
-					<td>RSSI</td>
-					<td>
-						<span class="current_rssi_{{ node }}"></span>
-					</td>
-				</tr>
-				<tr>
-					<td>Trigger</td>
-					<td>
-						<span class="trigger_rssi_{{ node }}"></span>
-					</td>
-				</tr>
-				<tr>
-					<td>Peak</td>
-					<td>
-						<span class="peak_rssi_{{ node }}"></span>
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
-	{% endfor %}
+    {% for node in range(num_nodes) %}
+    <div class='col-xs-8 col-sm-4 col-md-2'>
+        <div class='panel panel-default'>
+            <div class="panel-heading">
+                <h4 class="panel-title">{{ node + 1 }}</h4>
+            </div>
+            <table class="table">
+                <tr>
+                    <td colspan="2">
+                        Freq.
+                        <!--Need to have two drop downs, band and frequency, one drop is long of a list-->
+                        <div class="btn-group">
+                            <button class="btn btn-default dropdown-toggle channel_{{ node }}" type="button" data-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="true"></button>
+                            <ul class="dropdown-menu set_frequency">
+                                {% for frequency in frequencies.query.all() %}
+                                <li><a role="button" data-node="{{ node }}" data-frequency="{{ frequency.frequency }}">{{ frequency.channel }} {{ frequency.frequency }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>RSSI</td>
+                    <td>
+                        <span class="current_rssi_{{ node }}"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Trigger</td>
+                    <td>
+                        <span class="trigger_rssi_{{ node }}"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Peak</td>
+                    <td>
+                        <span class="peak_rssi_{{ node }}"></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 <!--Heats list for editing-->
-<h4>Heats
-	<button type="button" class="btn btn-default" id="add_heat" onclick="this.blur();">Add Heat</button>
+<h4>
+    Heats
+    <button type="button" class="btn btn-default" id="add_heat" onclick="this.blur();">Add Heat</button>
 </h4>
 <p>Don't change a heat after it has a saved race.</p>
 <div id="heats">
-	<div class="row">
-		{% for heat in heats.query.with_entities(heats.heat_id).distinct() %}
-		<div class='col-xs-8 col-md-4'>
-			<div class='panel panel-default'>
-				<div class="panel-heading">
-					<h4 class="panel-title">{{ heat.heat_id }} (Heat note)</h4>
-				</div>
-				<table class="table">
-					{% for node in range(num_nodes) %}
-					<tr>
-						<td>
-							<div class="channel_{{ node }}"></div>
-						</td>
-						<td>
-							<div class="btn-group">
-								<button class="btn btn-default dropdown-toggle heat_{{ heat.heat_id }}_node_{{ node }}" type="button" data-toggle="dropdown"
-								 aria-haspopup="true" aria-expanded="true">
-								{{ pilots.query.filter_by(pilot_id=
+    <div class="row">
+        {% for heat in heats.query.with_entities(heats.heat_id).distinct() %}
+        <div class='col-xs-8 col-md-4'>
+            <div class='panel panel-default'>
+                <div class="panel-heading">
+                    <h4 class="panel-title">{{ heat.heat_id }} (Heat note)</h4>
+                </div>
+                <table class="table">
+                    {% for node in range(num_nodes) %}
+                    <tr>
+                        <td>
+                            <div class="channel_{{ node }}"></div>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-default dropdown-toggle heat_{{ heat.heat_id }}_node_{{ node }}" type="button" data-toggle="dropdown"
+                                        aria-haspopup="true" aria-expanded="true">
+                                    {{
+ pilots.query.filter_by(pilot_id=
 									heats.query.filter_by(heat_id=heat.heat_id,node_index=node).first().pilot_id
-									).first().callsign }}
-								</button>
-								<ul class="dropdown-menu set_pilot_position">
-									{% for pilot in pilots.query.all() %}
-									<li><a role="button" data-heat="{{ heat.heat_id }}" data-node="{{ node }}" data-pilot="{{ pilot.pilot_id }}">{{ pilot.callsign }}</a></li>
-									{% endfor %}
-								</ul>
-							</div>
-						</td>
-					</tr>
-					{% endfor %}
-				</table>
-			</div>
-		</div>
-		{% endfor %}
-	</div>
+									).first().callsign
+                                    }}
+                                </button>
+                                <ul class="dropdown-menu set_pilot_position">
+                                    {% for pilot in pilots.query.all() %}
+                                    <li><a role="button" data-heat="{{ heat.heat_id }}" data-node="{{ node }}" data-pilot="{{ pilot.pilot_id }}">{{ pilot.callsign }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 
 <!--Pilots list for editing-->
-<h4>Pilots
-	<button type="button" class="btn btn-default" id="add_pilot" onclick="this.blur();">Add Pilot</button>
+<h4>
+    Pilots
+    <button type="button" class="btn btn-default" id="add_pilot" onclick="this.blur();">Add Pilot</button>
 </h4>
 <p>Spelling corrections only after saving races.</p>
 <div class="row">
-	<div class='col-xs-16 col-md-8'>
-		<div class='panel panel-default'>
-			<table class="table">
-				<thead>
-					<tr>
-						<th>Pilot ID</th>
-						<th>Call Sign</th>
-						<th>Phonetic</th>
-						<th></th>
-						<th>Name</th>
-						</tr>
-				</thead>
-				<tbody>
-					{% for pilot in pilots.query.all() %} {% if pilot.pilot_id != 0 %}
-					<tr>
-						<td>{{ pilot.pilot_id }}</td>
-						<td>
-							<input type="text" class="form-control set_pilot_callsign callsign_{{ pilot.pilot_id }}" data-pilot_id="{{ pilot.pilot_id }}"
-							 value="{{ pilot.callsign }}">
-						</td>
-						<td>
-							<input type="text" class="form-control set_pilot_phonetic phonetic_{{ pilot.pilot_id }}" data-pilot_id="{{ pilot.pilot_id }}"
-							 value="{{ pilot.phonetic }}">
-						</td>
-						<td>
-							<button type="button" class="btn btn-default" id="speak_pilot" onclick="this.blur();" data-pilot_id="{{ pilot.pilot_id }}">&#9658;</button>
-						</td>
-						<td>
-							<input type="text" class="form-control set_pilot_name name_{{ pilot.pilot_id }}" data-pilot_id="{{ pilot.pilot_id }}" value="{{ pilot.name }}">
-						</td>
-					</tr>
-					{% endif %} {% endfor %}
-				</tbody>
-			</table>
-		</div>
-	</div>
+    <div class='col-xs-16 col-md-8'>
+        <div class='panel panel-default'>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Pilot ID</th>
+                        <th>Call Sign</th>
+                        <th>Phonetic</th>
+                        <th></th>
+                        <th>Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pilot in pilots.query.all() %} {% if pilot.pilot_id != 0 %}
+                    <tr>
+                        <td>{{ pilot.pilot_id }}</td>
+                        <td>
+                            <input type="text" class="form-control set_pilot_callsign callsign_{{ pilot.pilot_id }}" data-pilot_id="{{ pilot.pilot_id }}"
+                                   value="{{ pilot.callsign }}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control set_pilot_phonetic phonetic_{{ pilot.pilot_id }}" data-pilot_id="{{ pilot.pilot_id }}"
+                                   value="{{ pilot.phonetic }}">
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-default" id="speak_pilot" onclick="this.blur();" data-pilot_id="{{ pilot.pilot_id }}">&#9658;</button>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control set_pilot_name name_{{ pilot.pilot_id }}" data-pilot_id="{{ pilot.pilot_id }}" value="{{ pilot.name }}">
+                        </td>
+                    </tr>
+                    {% endif %} {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!--Display Voice-->
 <h4>Voice Selection</h4>
 <div class="row">
-	<div class='col-xs-8 col-sm-4 col-md-2'>
-						<div class="btn-group">
-							<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true"
-							 aria-expanded="true"><span class="sel_lang"></span></button>
-							<ul class="dropdown-menu set_language">
-								<li><a role="button" data-language="0">None</a></li>
-								<li><a role="button" data-language="1">David - English (United States en-US</a></li>
-								<li><a role="button" data-language="2">Zira - English (United States) en-US</a></li>
-								<li><a role="button" data-language="3">US English en-US</a></li>
-								<li><a role="button" data-language="4">UK English Female en-GB</a></li>
-								<li><a role="button" data-language="5">UK English Male en-GB</a></li>
-								<li><a role="button" data-language="6">Deutsch de-DE</a></li>
-								<li><a role="button" data-language="7">español es-ES</a></li>
-								<li><a role="button" data-language="8">español de Estados Unidos es-US</a></li>
-								<li><a role="button" data-language="9">français fr-FR</a></li>
-								<li><a role="button" data-language="10">हिन्दी hi-IN</a></li>
-								<li><a role="button" data-language="11">Bahasa Indonesia id-ID</a></li>
-								<li><a role="button" data-language="12">italiano it-IT</a></li>
-								<li><a role="button" data-language="13">日本語 ja-JP</a></li>
-								<li><a role="button" data-language="14">한국의 ko-KR</a></li>
-								<li><a role="button" data-language="15">Nederlands nl-NL</a></li>
-								<li><a role="button" data-language="16">polski pl-PL</a></li>
-								<li><a role="button" data-language="17">português do Brasil pt-BR</a></li>
-								<li><a role="button" data-language="18">русский ru-RU</a></li>
-								<li><a role="button" data-language="19">國語（臺灣） zh-TW</a></li>
-							</ul>
-						</div>
-	</div>
+    <div class='col-xs-8 col-sm-4 col-md-2'>
+        <div class="btn-group">
+            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="true">
+                <span class="sel_lang"></span>
+            </button>
+            <ul class="dropdown-menu set_language">
+                <li><a role="button" data-language="0">None</a></li>
+                <li><a role="button" data-language="1">David - English (United States en-US</a></li>
+                <li><a role="button" data-language="2">Zira - English (United States) en-US</a></li>
+                <li><a role="button" data-language="3">US English en-US</a></li>
+                <li><a role="button" data-language="4">UK English Female en-GB</a></li>
+                <li><a role="button" data-language="5">UK English Male en-GB</a></li>
+                <li><a role="button" data-language="6">Deutsch de-DE</a></li>
+                <li><a role="button" data-language="7">español es-ES</a></li>
+                <li><a role="button" data-language="8">español de Estados Unidos es-US</a></li>
+                <li><a role="button" data-language="9">français fr-FR</a></li>
+                <li><a role="button" data-language="10">हिन्दी hi-IN</a></li>
+                <li><a role="button" data-language="11">Bahasa Indonesia id-ID</a></li>
+                <li><a role="button" data-language="12">italiano it-IT</a></li>
+                <li><a role="button" data-language="13">日本語 ja-JP</a></li>
+                <li><a role="button" data-language="14">한국의 ko-KR</a></li>
+                <li><a role="button" data-language="15">Nederlands nl-NL</a></li>
+                <li><a role="button" data-language="16">polski pl-PL</a></li>
+                <li><a role="button" data-language="17">português do Brasil pt-BR</a></li>
+                <li><a role="button" data-language="18">русский ru-RU</a></li>
+                <li><a role="button" data-language="19">國語（臺灣） zh-TW</a></li>
+            </ul>
+        </div>
+    </div>
 </div>
 
 <!--Edit system tuning values-->
 <h4>Sensor Tuning</h4>
 <div class="dropdown">
-	<b> Profile : </b>
-  <button class="btn btn-default dropdown-toggle" type="button" id="set_profile" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-    {{profiles.query.get(last_profile.query.get(1).profile_id).name}}
-    <span class="caret"></span>
-  </button>
-	<button type="button" class="btn btn-default" id="add_profile" onclick="this.blur();">+</button>
-	<button type="button" class="btn btn-default" id="delete_profile" onclick="this.blur();">x</button>
-  <ul class="dropdown-menu set_profile">
-		{% for profile in profiles.query.all() %}
-		 <li><a role="button" data-profile="{{profile.name}}">{{profile.name}}</a></li>
-		{% endfor %}
-  </ul>
+    <b> Profile : </b>
+    <button class="btn btn-default dropdown-toggle" type="button" id="set_profile" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        {{profiles.query.get(last_profile.query.get(1).profile_id).name}}
+        <span class="caret"></span>
+    </button>
+    <button type="button" class="btn btn-default" id="add_profile" onclick="this.blur();">+</button>
+    <button type="button" class="btn btn-default" id="delete_profile" onclick="this.blur();">x</button>
+    <ul class="dropdown-menu set_profile">
+        {% for profile in profiles.query.all() %}
+        <li><a role="button" data-profile="{{profile.name}}">{{profile.name}}</a></li>
+        {% endfor %}
+    </ul>
 </div>
 <div class="row">
-	<div class='col-xs-16 col-md-8'>
-		<div class='panel panel-default'>
-			<table class="table">
-				<tr>
-					<td><b> Name </b></td>
-					<td><input type="text" class="form-control set_profile_name"></td>
-				</tr>
-				<tr>
-					<td><b> Description </b></td>
-					<td><input type="textarea" class="form-control set_profile_description" rows="4"></td>
-				</tr>
-				<tr>
-					<td><b>Calibration Offset (Default 8)</b><br>Trigger is Peak Rssi minus Calibration Offset</td>
-					<td>
-						<input type="text" class="form-control set_calibration_offset">
-					</td>
-				</tr>
-				<tr>
-					<td><b>Calibration Threshold (Default 95)</b><br>Trigger minus Calibration Threshold ends calibration pass</td>
-					<td>
-						<input type="text" class="form-control set_calibration_threshold">
-					</td>
-				</tr>
-				<tr>
-					<td><b>Trigger Threshold (Default 40)</b><br>Trigger minus Trigger Threshold ends normal pass</td>
-					<td>
-						<input type="text" class="form-control set_trigger_threshold">
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
+    <div class='col-xs-16 col-md-8'>
+        <div class='panel panel-default'>
+            <table class="table">
+                <tr>
+                    <td><b> Name </b></td>
+                    <td><input type="text" class="form-control set_profile_name"></td>
+                </tr>
+                <tr>
+                    <td><b> Description </b></td>
+                    <td><input type="textarea" class="form-control set_profile_description" rows="4"></td>
+                </tr>
+                <tr>
+                    <td><b>Calibration Offset (Default 8)</b><br>Trigger is Peak Rssi minus Calibration Offset</td>
+                    <td>
+                        <input type="text" class="form-control set_calibration_offset">
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Calibration Threshold (Default 95)</b><br>Trigger minus Calibration Threshold ends calibration pass</td>
+                    <td>
+                        <input type="text" class="form-control set_calibration_threshold">
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Trigger Threshold (Default 40)</b><br>Trigger minus Trigger Threshold ends normal pass</td>
+                    <td>
+                        <input type="text" class="form-control set_trigger_threshold">
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>
 <h4> Fixed Race Time</h4>
 <div class="row">
-	<div class='col-xs-16 col-md-8'>
-		<div class='panel panel-default'>
-			<table class="table">
-				<tr>
-					<td><b>Time</b><br> maximum race time in seconds</td>
-					<td>
-						<input type="text" class="form-control set_fix_race_time" value="{{current_fix_race_time}}">
-					</td>
-				</tr>
-		 </table>
-		</div>
-	</div>
+    <div class='col-xs-16 col-md-8'>
+        <div class='panel panel-default'>
+            <table class="table">
+                <tr>
+                    <td><b>Time</b><br> maximum race time in seconds</td>
+                    <td>
+                        <input type="text" class="form-control set_fix_race_time" value="{{current_fix_race_time}}">
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<h4> Minimum Lap Time</h4>
+<div class="row">
+    <div class='col-xs-16 col-md-8'>
+        <div class='panel panel-default'>
+            <table class="table">
+                <tr>
+                    <td><b>Time</b><br> minimum lap time in seconds</td>
+                    <td>
+                        <input type="text" class="form-control set_min_lap_time" value="{{current_min_lap_time}}">
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!--Reset database-->
 <h4>Database (Copy out any saved races first!)</h4>
 <div>
-	<button type="button" class="btn btn-danger" id="reset_database" onclick="this.blur();">Reset Database</button>
-	<button type="button" class="btn btn-warning" id="reset_database_keep_pilots" onclick="this.blur();">Reset Keep Pilots</button>
+    <button type="button" class="btn btn-danger" id="reset_database" onclick="this.blur();">Reset Database</button>
+    <button type="button" class="btn btn-warning" id="reset_database_keep_pilots" onclick="this.blur();">Reset Keep Pilots</button>
 </div>
 
 <!--Reset database-->
 <h4>System (Safely shutdown raspberry pi)</h4>
 <div>
-	<button type="button" class="btn btn-default" id="shutdown_pi" onclick="this.blur();">Shutdown</button>
+    <button type="button" class="btn btn-default" id="shutdown_pi" onclick="this.blur();">Shutdown</button>
 </div>
 
 </br>
 <!--Bottom whitespace-->
-
 {% endblock %}
