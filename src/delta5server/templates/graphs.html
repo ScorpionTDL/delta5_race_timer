@@ -1,0 +1,101 @@
+<!-- original code from Philippe Van Hecke https://framagit.org/lephiloux/delta5_race_timer-->
+{% extends "layout.html" %}
+{% block title %}Graphs{% endblock %}
+{% block head %}
+<script type="text/javascript" src="./static/Chart.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+$(document).ready(function () {
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+    var graphs=[];
+    var ctx=[];
+    var i=0;
+    var datas=[];
+    var options=[]
+
+    for (i=0; i<8; i++)
+    {
+    ctx[i]=document.getElementById("rssi_"+(i+1).toString()).getContext("2d");
+    datas[i]={
+             type: 'line',
+             data:{
+             labels:['1','2','3','4','5','6','7','8','9','10','10','12','13','14','15','16','17','18','19','20','21','22','23','24','25'],
+             datasets:[{
+               label: "RSSI",
+               fill: false,
+               borderColor: "#ff00ff",
+               backgroundColor: "#ff00ff",
+               data: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25],
+               lineTension:0,
+               pointRadius:0
+             },
+             {
+               label: "Peak",
+               fill: false,
+               borderColor: "#0f0f0f",
+               backgroundColor: "#0f0f0f",
+               data: [],
+
+               pointRadius:0
+             }],
+           },
+           options:{
+              animation:{
+                duration:0
+              },
+              tooltips:{
+                enabled:false
+              },
+             scales: {
+               yAxes: [{
+    							ticks: {
+                    suggestedMin: 0,
+                    beginAtZero:true,
+    								min: 90,
+    								max: 250,
+    								stepSize: 10
+    							},
+    					}]
+            }
+          }
+         };
+    graphs[i] = new Chart(ctx[i],datas[i]);
+   }
+    socket.on('heartbeat', function (msg) {
+       for (i=0; i<msg.current_rssi.length; i++)
+       {
+           setData(datas[i].data.datasets[0].data,msg,i)
+           graphs[i] = new Chart(ctx[i],datas[i]);
+       }
+			 return 0;
+     });
+     function setData(data,msg,idx){
+     data.push(msg.current_rssi[idx]);
+     data.shift();
+    }
+		});
+</script>
+{% endblock %}
+
+{% block content %}
+
+<table class="table">
+ <tr>
+   <td width="50%"><canvas id="rssi_1" width="400" height="300" ></canvas</td>
+   <td width="50%"><canvas id="rssi_2" width="400" height="300"></canvas></td>
+ </tr>
+ <tr>
+  <td width="50%"><canvas id="rssi_3" width="400" height="300"></canvas></td>
+  <td width="50%"><canvas id="rssi_4" width="400" height="300"></canvas></td>
+ </tr>
+  <tr>
+   <td width="50%"><canvas id="rssi_5" width="400" height="300" ></canvas</td>
+   <td width="50%"><canvas id="rssi_6" width="400" height="300"></canvas></td>
+ </tr>
+ <tr>
+  <td width="50%"><canvas id="rssi_7" width="400" height="300"></canvas></td>
+  <td width="50%"><canvas id="rssi_8" width="400" height="300"></canvas></td>
+ </tr>
+</table>
+
+{% endblock %}

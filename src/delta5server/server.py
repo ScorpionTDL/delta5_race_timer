@@ -269,6 +269,10 @@ def index():
          heat_fast_laps.append(fast_laps)
     return render_template('rounds.html', num_nodes=RACE.num_nodes, rounds=SavedRace, pilots=Pilot, heats=Heat )
 
+@APP.route('/graphs')
+def graphs():
+    return render_template('graphs.html')
+	
 @APP.route('/laps')
 def laps():
 
@@ -303,7 +307,7 @@ def laps():
              avg_80_laptime = avg_80_laptime + lap.lap_time
          if lapcount <= rounds_current_pilot * 0.9:
              avg_90_laptime = avg_90_laptime + lap.lap_time
-     if rounds_current_pilot > 0:
+     if rounds_current_pilot > 1:
          avg_50_laptime = avg_50_laptime /  int(rounds_current_pilot * 0.5)
          avg_80_laptime = avg_80_laptime /  int(rounds_current_pilot * 0.8)
          avg_90_laptime = avg_90_laptime /  int(rounds_current_pilot * 0.9)
