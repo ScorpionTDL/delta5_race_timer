@@ -1,3 +1,6 @@
 *.db
 *.pyc
 /.vs
+/src/delta5server/database.db.2018-09-29_11-55-59
+/src/delta5server/database.db.2018-09-29_11-57-54
+/src/delta5server/database.db.2018-09-29_11-55-59

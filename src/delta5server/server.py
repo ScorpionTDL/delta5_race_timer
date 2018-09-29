@@ -4,6 +4,7 @@ import os
 import sys
 from datetime import datetime
 from functools import wraps
+from shutil import copyfile
 
 from flask import Flask, render_template, request, Response
 from flask_socketio import SocketIO, emit
@@ -586,14 +587,23 @@ def on_set_trigger_threshold(data):
     server_log('Trigger threshold set: {0}'.format(trigger_threshold))
     emit_node_tuning()
 
+def backup_database():
+    datetime_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    source_string = os.path.join(BASEDIR, 'database.db')
+    destination_string = source_string + "."+datetime_string
+    server_log('create database backup from {0} to {1}'.format(source_string, destination_string))
+    copyfile(source_string, destination_string)
+
 @SOCKET_IO.on('reset_database')
 def on_reset_database():
     '''Reset database.'''
+    backup_database()
     db_reset()
 
 @SOCKET_IO.on('reset_database_keep_pilots')
 def on_reset_database_keep_pilots():
     '''Reset database but keep pilots list.'''
+    backup_database()
     db_reset_keep_pilots()
 
 @SOCKET_IO.on('shutdown_pi')
@@ -696,7 +706,7 @@ def start_race():
     emit_current_laps() # Race page, blank laps to the web client
     emit_leaderboard() # Race page, blank leaderboard to the web client
     INTERFACE.enable_calibration_mode() # Nodes reset triggers on next pass
-    gevent.sleep(0.500) # Make this random 2 to 5 seconds
+    gevent.sleep(0.700) # Make this random 2 to 5 seconds
     RACE.race_status = 1 # To enable registering passed laps
     global RACE_START # To redefine main program variable
     RACE_START = datetime.now() # Update the race start time stamp
@@ -710,7 +720,7 @@ def start_race_no_cal():
     emit_current_laps() # Race page, blank laps to the web client
     emit_leaderboard() # Race page, blank leaderboard to the web client
  #   INTERFACE.enable_calibration_mode() # Nodes reset triggers on next pass
-    gevent.sleep(0.500) # Make this random 2 to 5 seconds
+    gevent.sleep(0.700) # Make this random 2 to 5 seconds
     RACE.race_status = 1 # To enable registering passed laps
     global RACE_START # To redefine main program variable
     RACE_START = datetime.now() # Update the race start time stamp
