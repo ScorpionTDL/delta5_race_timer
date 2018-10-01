@@ -11,6 +11,8 @@
 <h5>Round {{ round.round_id }}</h5>
 <div class="row">
     {% for node in range(num_nodes) %}
+    {% set number_of_laps = rounds.query.filter(rounds.heat_id==heat.heat_id, rounds.round_id==round.round_id, rounds.node_index==node).count() %}
+    {% if number_of_laps > 1 %}
     {% set fastes_lap_of_pilot = rounds.query.filter(rounds.heat_id==heat.heat_id, rounds.round_id==round.round_id, rounds.node_index==node, rounds.lap_id>0).order_by(rounds.lap_time).first().id %}
     <div class="col-xs-8 col-sm-8 col-md-3">
         <div class='panel panel-default'>
@@ -55,6 +57,7 @@
             </table>
         </div>
     </div>
+    {% endif %}
     {% endfor %}
 </div>
 {% endfor %}
