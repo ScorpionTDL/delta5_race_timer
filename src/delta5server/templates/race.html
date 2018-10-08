@@ -107,17 +107,19 @@
 
 		socket.on('leaderboard', function (msg) {
 			$('#leaderboard tbody > tr').remove();
-			for (i = 0; i < msg.position.length; i++) {
-				var $tr = $('<tr>').append(
-					$('<td>').text(msg.position[i]),
-					$('<td>').text(msg.callsign[i]),
-					$('<td>').text(msg.laps[i]),
-					$('<td>').text(msg.last_lap[i]),
-					$('<td>').text(msg.behind[i]),
-					$('<td>').text(msg.average_lap[i]),
-					$('<td>').text(msg.fastest_lap[i]),
-					$('<td>').text(msg.total_time[i]),
-				).appendTo('#leaderboard');
+            for (i = 0; i < msg.position.length; i++) {
+                if (msg.callsign[i] != "-") {
+                    var $tr = $('<tr>').append(
+                        $('<td>').text(msg.position[i]),
+                        $('<td>').text(msg.callsign[i]),
+                        $('<td>').text(msg.laps[i]),
+                        $('<td>').text(msg.last_lap[i]),
+                        $('<td>').text(msg.behind[i]),
+                        $('<td>').text(msg.average_lap[i]),
+                        $('<td>').text(msg.fastest_lap[i]),
+                        $('<td>').text(msg.total_time[i]),
+                    ).appendTo('#leaderboard');
+                }
 			}
 		});
 

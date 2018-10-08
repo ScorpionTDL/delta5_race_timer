@@ -8,20 +8,131 @@
             <div class="panel-heading">
                 <h4 class="panel-title ">Top 10 Rounds</h4>
             </div>
-                <table class="table">
-                    <tbody>
-                        {% for lap in total_top_fastes_laps %}
-                        <tr>
-                            <td>
-                                {{ pilots.query.filter_by( pilot_id=lap.pilot_id).first().callsign }}
-                            </td>
-                            <td>
-                                {{ lap.lap_time_formatted }}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>   
+            <table class="table">
+                <tbody>
+                    {% for lap in total_top_fastes_laps %}
+                    <tr>
+                        <td>
+                            {{ pilots.query.filter_by( pilot_id=lap.pilot_id).first().callsign }}
+                        </td>
+                        <td>
+                            {{ lap.lap_time_formatted }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-xs-8 col-sm-4 col-md-2">
+        <div class='panel panel-default'>
+            <div class="panel-heading">
+                <h4 class="panel-title ">Top # of Rounds</h4>
+            </div>
+            <table class="table">
+                <tbody>
+                    {% for pilot in top_pilot_lapnumber_array %}
+                    <tr>
+                        <td>
+                            {{ pilots.query.filter_by( pilot_id=pilot[0]).first().callsign }}
+                        </td>
+                        <td>
+                            {{pilot[1] }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-xs-8 col-sm-4 col-md-2">
+        <div class='panel panel-default'>
+            <div class="panel-heading">
+                <h4 class="panel-title ">Top Laps</h4>
+            </div>
+            <table class="table">
+                <tbody>
+                    {% for pilot in top_pilot_fastes_lap_array %}
+                    <tr>
+                        <td>
+                            {{ pilots.query.filter_by( pilot_id=pilot[0]).first().callsign }}
+                        </td>
+                        <td>
+                            {{pilot[1] }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-xs-8 col-sm-4 col-md-2">
+        <div class='panel panel-default'>
+            <div class="panel-heading">
+                <h4 class="panel-title ">Top 50% avg</h4>
+            </div>
+            <table class="table">
+                <tbody>
+                    {% for pilot in top_pilot_50_avg_array %}
+                    <tr>
+                        <td>
+                            {{ pilots.query.filter_by( pilot_id=pilot[0]).first().callsign }}
+                        </td>
+                        <td>
+                            {{pilot[1] }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+
+    <div class="col-xs-8 col-sm-4 col-md-2">
+        <div class='panel panel-default'>
+            <div class="panel-heading">
+                <h4 class="panel-title ">Top 80% avg</h4>
+            </div>
+            <table class="table">
+                <tbody>
+                    {% for pilot in top_pilot_80_avg_array %}
+                    <tr>
+                        <td>
+                            {{ pilots.query.filter_by( pilot_id=pilot[0]).first().callsign }}
+                        </td>
+                        <td>
+                            {{pilot[1] }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-xs-8 col-sm-4 col-md-2">
+        <div class='panel panel-default'>
+            <div class="panel-heading">
+                <h4 class="panel-title ">Top 90% avg</h4>
+            </div>
+            <table class="table">
+                <tbody>
+                    {% for pilot in top_pilot_90_avg_array %}
+                    <tr>
+                        <td>
+                            {{ pilots.query.filter_by( pilot_id=pilot[0]).first().callsign }}
+                        </td>
+                        <td>
+                            {{pilot[1] }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -29,6 +140,7 @@
 <!-- display all laps of pilots sorted by time-->
 <div class="row">
     {% for pilot in pilots.query.order_by(pilots.id)[1:]  %}
+    {%if rounds_per_pilot[pilot.pilot_id] > 0 %}
     <div class="col-xs-8 col-sm-4 col-md-2">
         <div class='panel panel-default'>
             <div class="panel-heading">
@@ -57,6 +169,7 @@
             </table>
         </div>
     </div>
+    {% endif %}
     {% endfor %}
 </div>
  {% endblock %}

@@ -284,6 +284,11 @@ def laps():
     avg_80_laptime_array = []
     avg_90_laptime_array = []
     current_lap_counter = 0
+    top_pilot_lapnumber_array = []
+    top_pilot_50_avg_array = []
+    top_pilot_80_avg_array = []
+    top_pilot_90_avg_array = []
+    top_pilot_fastes_lap_array = []
     for lap in SavedRace.query.filter(SavedRace.lap_id!=0).order_by(SavedRace.lap_time):
       total_top_fastes_laps.append(lap)
       current_lap_counter = current_lap_counter +1
@@ -294,28 +299,64 @@ def laps():
      all_laps_sorted_by_time.append(lap)
 
     for pilot in Pilot.query:
-     rounds_current_pilot = SavedRace.query.filter(SavedRace.lap_id!=0, SavedRace.pilot_id==pilot.pilot_id).count()
-     rounds_per_pilot.append(rounds_current_pilot)
-     lapcount = 0
-     avg_50_laptime = 0
-     avg_80_laptime = 0
-     avg_90_laptime = 0
-     for lap in SavedRace.query.filter(SavedRace.lap_id!=0,SavedRace.pilot_id==pilot.pilot_id).order_by(SavedRace.lap_time):
-         lapcount = lapcount +1
-         if lapcount <= rounds_current_pilot * 0.5:
-             avg_50_laptime = avg_50_laptime + lap.lap_time
-         if lapcount <= rounds_current_pilot * 0.8:
-             avg_80_laptime = avg_80_laptime + lap.lap_time
-         if lapcount <= rounds_current_pilot * 0.9:
-             avg_90_laptime = avg_90_laptime + lap.lap_time
-     if rounds_current_pilot > 1:
-         avg_50_laptime = avg_50_laptime /  int(rounds_current_pilot * 0.5)
-         avg_80_laptime = avg_80_laptime /  int(rounds_current_pilot * 0.8)
-         avg_90_laptime = avg_90_laptime /  int(rounds_current_pilot * 0.9)
-     avg_50_laptime_array.append(time_format(avg_50_laptime))
-     avg_80_laptime_array.append(time_format(avg_80_laptime))
-     avg_90_laptime_array.append(time_format(avg_90_laptime))
-    return render_template('laps.html', num_nodes=RACE.num_nodes, rounds=SavedRace, pilots=Pilot, heats=Heat,  total_top_fastes_laps=total_top_fastes_laps,rounds_per_pilot=rounds_per_pilot, avg_50_laptime_array=avg_50_laptime_array, avg_80_laptime_array=avg_80_laptime_array, avg_90_laptime_array=avg_90_laptime_array)
+         rounds_current_pilot = SavedRace.query.filter(SavedRace.lap_id!=0, SavedRace.pilot_id==pilot.pilot_id).count()
+         rounds_per_pilot.append(rounds_current_pilot)       
+         lapcount = 0
+         avg_50_laptime = 0
+         avg_80_laptime = 0
+         avg_90_laptime = 0
+         fastes_lap = 0
+         for lap in SavedRace.query.filter(SavedRace.lap_id!=0,SavedRace.pilot_id==pilot.pilot_id).order_by(SavedRace.lap_time):
+             lapcount = lapcount +1
+             if lapcount == 1 :
+                 fastes_lap = lap.lap_time
+             if lapcount <= rounds_current_pilot * 0.5:
+                 avg_50_laptime = avg_50_laptime + lap.lap_time
+             if lapcount <= rounds_current_pilot * 0.8:
+                 avg_80_laptime = avg_80_laptime + lap.lap_time
+             if lapcount <= rounds_current_pilot * 0.9:
+                 avg_90_laptime = avg_90_laptime + lap.lap_time
+         if rounds_current_pilot > 1:
+             avg_50_laptime = avg_50_laptime /  int(rounds_current_pilot * 0.5)
+             avg_80_laptime = avg_80_laptime /  int(rounds_current_pilot * 0.8)
+             avg_90_laptime = avg_90_laptime /  int(rounds_current_pilot * 0.9)
+         avg_50_laptime_array.append(time_format(avg_50_laptime))
+         avg_80_laptime_array.append(time_format(avg_80_laptime))
+         avg_90_laptime_array.append(time_format(avg_90_laptime))
+
+         if rounds_current_pilot > 0:
+             tmp_row = []
+             tmp_row.append(pilot.pilot_id)
+             tmp_row.append(rounds_current_pilot)
+             top_pilot_lapnumber_array.append(tmp_row)
+
+             tmp_row = []
+             tmp_row.append(pilot.pilot_id)
+             tmp_row.append(time_format(avg_50_laptime))
+             top_pilot_50_avg_array.append(tmp_row)
+
+             tmp_row = []
+             tmp_row.append(pilot.pilot_id)
+             tmp_row.append(time_format(avg_80_laptime))
+             top_pilot_80_avg_array.append(tmp_row)
+
+             tmp_row = []
+             tmp_row.append(pilot.pilot_id)
+             tmp_row.append(time_format(avg_90_laptime))
+             top_pilot_90_avg_array.append(tmp_row)
+
+             tmp_row = []
+             tmp_row.append(pilot.pilot_id)
+             tmp_row.append(time_format(fastes_lap))
+             top_pilot_fastes_lap_array.append(tmp_row)
+
+
+    top_pilot_lapnumber_array.sort(key=lambda x : x[1], reverse=True)
+    top_pilot_50_avg_array.sort(key=lambda x : x[1])
+    top_pilot_80_avg_array.sort(key=lambda x : x[1])
+    top_pilot_90_avg_array.sort(key=lambda x : x[1])
+    top_pilot_fastes_lap_array.sort(key=lambda x : x[1])
+    return render_template('laps.html', num_nodes=RACE.num_nodes, rounds=SavedRace, pilots=Pilot, heats=Heat,  total_top_fastes_laps=total_top_fastes_laps,rounds_per_pilot=rounds_per_pilot, avg_50_laptime_array=avg_50_laptime_array, avg_80_laptime_array=avg_80_laptime_array, avg_90_laptime_array=avg_90_laptime_array, top_pilot_lapnumber_array = top_pilot_lapnumber_array, top_pilot_50_avg_array = top_pilot_50_avg_array, top_pilot_80_avg_array= top_pilot_80_avg_array, top_pilot_90_avg_array=top_pilot_90_avg_array, top_pilot_fastes_lap_array = top_pilot_fastes_lap_array)
 
 @APP.route('/heats')
 def heats():
@@ -1075,64 +1116,65 @@ def pass_record_callback_thread(node, ms_since_lap):
         # Get the current pilot id on the node
         pilot_id = Heat.query.filter_by( \
             heat_id=RACE.current_heat, node_index=node.index).first().pilot_id
+        if pilot_id>0 :
+            # Calculate the lap time stamp, milliseconds since start of race
+            lap_time_stamp = ms_from_race_start() - ms_since_lap
 
-        # Calculate the lap time stamp, milliseconds since start of race
-        lap_time_stamp = ms_from_race_start() - ms_since_lap
+            # Get the last completed lap from the database
+            last_lap_id = DB.session.query(DB.func.max(CurrentLap.lap_id)) \
+                .filter_by(node_index=node.index).scalar()
 
-        # Get the last completed lap from the database
-        last_lap_id = DB.session.query(DB.func.max(CurrentLap.lap_id)) \
-            .filter_by(node_index=node.index).scalar()
-
-        to_be_added = True
-        if last_lap_id is None: # No previous laps, this is the first pass
-            # Lap zero represents the time from the launch pad to flying through the gate
-            lap_time = lap_time_stamp
-            lap_id = 0
-        else: # This is a normal completed lap
-            # Find the time stamp of the last lap completed
-            last_lap_time_stamp = CurrentLap.query.filter_by( \
-                node_index=node.index, lap_id=last_lap_id).first().lap_time_stamp
-            # New lap time is the difference between the current time stamp and the last
-            lap_time = lap_time_stamp - last_lap_time_stamp
-            min_lap_time = MinLapTime.query.get(1).min_lap_time_sec
-            server_log('mit lap time is set to: {0}'.format(min_lap_time)) 
-            if lap_time < (min_lap_time*1000):
-				server_log('lap time below {0}, needs to be ignored'.format(min_lap_time))
-				to_be_added = False
-            else:
-				lap_id = last_lap_id + 1
-				server_log('time above threshold of {0}s, valid round'.format(min_lap_time))
+            to_be_added = True
+            if last_lap_id is None: # No previous laps, this is the first pass
+                # Lap zero represents the time from the launch pad to flying through the gate
+                lap_time = lap_time_stamp
+                lap_id = 0
+            else: # This is a normal completed lap
+                # Find the time stamp of the last lap completed
+                last_lap_time_stamp = CurrentLap.query.filter_by( \
+                    node_index=node.index, lap_id=last_lap_id).first().lap_time_stamp
+                # New lap time is the difference between the current time stamp and the last
+                lap_time = lap_time_stamp - last_lap_time_stamp
+                min_lap_time = MinLapTime.query.get(1).min_lap_time_sec
+                server_log('mit lap time is set to: {0}'.format(min_lap_time)) 
+                if lap_time < (min_lap_time*1000):
+				    server_log('lap time below {0}, needs to be ignored'.format(min_lap_time))
+				    to_be_added = False
+                else:
+				    lap_id = last_lap_id + 1
+				    server_log('time above threshold of {0}s, valid round'.format(min_lap_time))
 				
-        if to_be_added == True: 
-        # Add the new lap to the database
-            DB.session.add(CurrentLap(node_index=node.index, pilot_id=pilot_id, lap_id=lap_id, \
-				lap_time_stamp=lap_time_stamp, lap_time=lap_time, \
-				lap_time_formatted=time_format(lap_time)))
-            DB.session.commit()
+            if to_be_added == True: 
+            # Add the new lap to the database
+                DB.session.add(CurrentLap(node_index=node.index, pilot_id=pilot_id, lap_id=lap_id, \
+				    lap_time_stamp=lap_time_stamp, lap_time=lap_time, \
+				    lap_time_formatted=time_format(lap_time)))
+                DB.session.commit()
 
-            server_log('Pass record: Node: {0}, Lap: {1}, Lap time: {2}' \
-				.format(node.index, lap_id, time_format(lap_time)))
-            emit_current_laps() # Updates all laps on the race page
-            emit_leaderboard() # Updates leaderboard
-            if lap_id > 0: 
-				emit_phonetic_data(pilot_id, lap_id, lap_time, node.index) # Sends phonetic data to be spoken
-            if node.index==0:
-				theaterChase(strip, Color(0,0,255))  #BLUE theater chase
-            elif node.index==1:
-				theaterChase(strip, Color(255,50,0)) #ORANGE theater chase
-            elif node.index==2:
-				theaterChase(strip, Color(255,0,60)) #PINK theater chase
-            elif node.index==3:
-				theaterChase(strip, Color(150,0,255)) #PURPLE theater chase
-            elif node.index==4:
-				theaterChase(strip, Color(250,210,0)) #YELLOW theater chase
-            elif node.index==5:
-				theaterChase(strip, Color(0,255,255)) #CYAN theater chase
-            elif node.index==6:
-				theaterChase(strip, Color(0,255,0)) #GREEN theater chase
-            elif node.index==7:
-				theaterChase(strip, Color(255,0,0)) #RED theater chase
-
+                server_log('Pass record: Node: {0}, Lap: {1}, Lap time: {2}' \
+				    .format(node.index, lap_id, time_format(lap_time)))
+                emit_current_laps() # Updates all laps on the race page
+                emit_leaderboard() # Updates leaderboard
+                if lap_id > 0: 
+				    emit_phonetic_data(pilot_id, lap_id, lap_time, node.index) # Sends phonetic data to be spoken
+                if node.index==0:
+				    theaterChase(strip, Color(0,0,255))  #BLUE theater chase
+                elif node.index==1:
+				    theaterChase(strip, Color(255,50,0)) #ORANGE theater chase
+                elif node.index==2:
+				    theaterChase(strip, Color(255,0,60)) #PINK theater chase
+                elif node.index==3:
+				    theaterChase(strip, Color(150,0,255)) #PURPLE theater chase
+                elif node.index==4:
+				    theaterChase(strip, Color(250,210,0)) #YELLOW theater chase
+                elif node.index==5:
+				    theaterChase(strip, Color(0,255,255)) #CYAN theater chase
+                elif node.index==6:
+				    theaterChase(strip, Color(0,255,0)) #GREEN theater chase
+                elif node.index==7:
+				    theaterChase(strip, Color(255,0,0)) #RED theater chase
+        else:
+            server_log('no pilot configured for Node{0}, ignoring lap'.format(node.index))
 INTERFACE.pass_record_callback = pass_record_callback
 
 def server_log(message):
