@@ -330,25 +330,29 @@ def laps():
              tmp_row.append(rounds_current_pilot)
              top_pilot_lapnumber_array.append(tmp_row)
 
-             tmp_row = []
-             tmp_row.append(pilot.pilot_id)
-             tmp_row.append(time_format(avg_50_laptime))
-             top_pilot_50_avg_array.append(tmp_row)
+         if avg_50_laptime > 0:
+            tmp_row = []
+            tmp_row.append(pilot.pilot_id)
+            tmp_row.append(time_format(avg_50_laptime))
+            top_pilot_50_avg_array.append(tmp_row)
 
-             tmp_row = []
-             tmp_row.append(pilot.pilot_id)
-             tmp_row.append(time_format(avg_80_laptime))
-             top_pilot_80_avg_array.append(tmp_row)
+         if avg_80_laptime > 0:
+            tmp_row = []
+            tmp_row.append(pilot.pilot_id)
+            tmp_row.append(time_format(avg_80_laptime))
+            top_pilot_80_avg_array.append(tmp_row)
 
-             tmp_row = []
-             tmp_row.append(pilot.pilot_id)
-             tmp_row.append(time_format(avg_90_laptime))
-             top_pilot_90_avg_array.append(tmp_row)
+         if avg_90_laptime > 0:
+            tmp_row = []
+            tmp_row.append(pilot.pilot_id)
+            tmp_row.append(time_format(avg_90_laptime))
+            top_pilot_90_avg_array.append(tmp_row)
 
-             tmp_row = []
-             tmp_row.append(pilot.pilot_id)
-             tmp_row.append(time_format(fastes_lap))
-             top_pilot_fastes_lap_array.append(tmp_row)
+         if fastes_lap > 0:
+            tmp_row = []
+            tmp_row.append(pilot.pilot_id)
+            tmp_row.append(time_format(fastes_lap))
+            top_pilot_fastes_lap_array.append(tmp_row)
 
 
     top_pilot_lapnumber_array.sort(key=lambda x : x[1], reverse=True)
@@ -832,6 +836,7 @@ def on_delete_lap(data):
     '''Delete a false lap.'''
     node_index = data['node']
     lap_id = data['lapid']
+    server_log('Delete Lap {0} '.format(lap_id))
     max_lap = DB.session.query(DB.func.max(CurrentLap.lap_id)) \
         .filter_by(node_index=node_index).scalar()
     if lap_id is not max_lap:

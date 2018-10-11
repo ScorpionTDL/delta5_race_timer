@@ -127,17 +127,26 @@
             var $ttstest = "";
             var group = document.muteForm.chk_mute;
             //var chk_arr = document.getElementsByName('chk_mute[]');// document.getElementById("chk_mute");
-            if (group[msg.node_index].checked == false) {
-                if (document.getElementById('callout_name').checked == true) {
-                    $ttstest = $ttstest + msg.pilot;
-                }
-                if (document.getElementById('callout_lap').checked == true) {
-                    $ttstest = $ttstest + " " + document.getElementById("lap_text").value + " " + msg.lap;
-                }
-                $ttstest = $ttstest + " " + msg.phonetic;
 
+            if (document.getElementById('callout_name').checked == true) {
+                $ttstest = $ttstest + msg.pilot;
+            }
+            if (document.getElementById('callout_lap').checked == true) {
+                $ttstest = $ttstest + " " + document.getElementById("lap_text").value + " " + msg.lap;
+            }
+            $ttstest = $ttstest + " " + msg.phonetic;
+
+            var speak_text = false;
+            if (group.length > 0) {
+                speak_text =!  group[msg.node_index].checked;
+            } else {
+                speak_text = ! document.muteForm.chk_mute.checked;
+            }
+            if (speak_text) {
                 speak('<div class="speech">' + $ttstest + '</div> div.speech');
             }
+         
+
 		})
 
 		socket.on('language_data', function (msg) {
@@ -619,6 +628,7 @@
 <form name="muteForm">
     <div class="row">
         {% for node in range(num_nodes) %}
+        {% if heats.query.filter_by(heat_id=current_heat,node_index=node).first().pilot_id >0 %}
         <div class="col-xs-4 col-md-2">
             <div class='panel panel-default'>
                 <div class="panel-heading">
@@ -655,6 +665,7 @@
                 </table>
             </div>
         </div>
+        {% endif %}
         {% endfor %}
     </div>
 </form>
