@@ -1046,6 +1046,12 @@ def emit_phonetic_data(pilot_id, lap_id, lap_time, node_index):
     phonetic_name = Pilot.query.filter_by(pilot_id=pilot_id).first().phonetic
     SOCKET_IO.emit('phonetic_data', {'pilot': phonetic_name, 'lap': lap_id, 'phonetic': phonetic_time, 'node_index': node_index})
 
+def emit_phonetic_data_first_pass(pilot_id, lap_id, lap_time, node_index):
+    '''Emits phonetic data.'''
+    phonetic_time = phonetictime_format(lap_time)
+    phonetic_name = Pilot.query.filter_by(pilot_id=pilot_id).first().phonetic
+    SOCKET_IO.emit('phonetic_data_first_pass', {'pilot': phonetic_name, 'lap': lap_id, 'phonetic': phonetic_time, 'node_index': node_index})
+
 def emit_language_data():
     '''Emits language.'''
     SOCKET_IO.emit('language_data', {'language': RACE.lang_id})
@@ -1160,6 +1166,8 @@ def pass_record_callback_thread(node, ms_since_lap):
 				    .format(node.index, lap_id, time_format(lap_time)))
                 emit_current_laps() # Updates all laps on the race page
                 emit_leaderboard() # Updates leaderboard
+                if lap_id == 0:
+				    emit_phonetic_data_first_pass(pilot_id, lap_id, lap_time, node.index) # Sends phonetic data to be spoken
                 if lap_id > 0: 
 				    emit_phonetic_data(pilot_id, lap_id, lap_time, node.index) # Sends phonetic data to be spoken
                 if node.index==0:

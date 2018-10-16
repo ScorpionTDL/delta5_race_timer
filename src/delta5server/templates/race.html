@@ -1,13 +1,16 @@
 {% extends "layout.html" %} {% block title %}Race{% endblock %}{% block head %}
 
 <audio id="buzzer" src="./static/audio/buzzer.mp3" type="audio/mp3"></audio>
+<audio id="beeper" src="./static/audio/beep.mp3" type="audio/mp3"></audio>
 
 <script type="text/javascript" charset="utf-8">
 	$(document).ready(function () {
 		var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
         var buzzer = $('#buzzer')[0];
+        var beeper = $('#beeper')[0];
 
+        //get all the cookies to restore the settings of the gui
         var callout_lap = getCookie("callout_lap");
         if (callout_lap == "true") {
             document.getElementById('callout_lap').checked = true;
@@ -19,7 +22,17 @@
         }
 
         document.getElementById('lap_text').value = getCookie("lap_text");
-        if (document.getElementById('lap_text').value == "") { document.getElementById('lap_text').value = "Runde"}
+        if (document.getElementById('lap_text').value == "") { document.getElementById('lap_text').value = "Runde" }
+
+        var calibrate_first_pass = getCookie("calibrate_first_pass");
+        if (calibrate_first_pass == "true") {
+            document.getElementById('calibrate_first_pass').checked = true;
+        }
+        var beep_first_pass = getCookie("beep_first_pass");
+        if (beep_first_pass == "true") {
+            document.getElementById('beep_first_pass').checked = true;
+        }
+        //END get cookie stuff
 
         function getCookie(cname) {
             var name = cname + "=";
@@ -42,7 +55,6 @@
                     $('button#current_heat').attr('disabled', 'disabled'); 
 					$('button#start_race').attr('disabled', 'disabled');
                     $('button#start_race_2min').attr('disabled', 'disabled');
-                    $('button#start_race_no_cal').attr('disabled', 'disabled');
 					$('button#stop_race').removeAttr('disabled');
 					$('button#save_laps').attr('disabled', 'disabled');
 					$('button#clear_laps').attr('disabled', 'disabled');
@@ -51,7 +63,6 @@
 					$('button#current_heat').attr('disabled', 'disabled');
 					$('button#start_race').attr('disabled', 'disabled');
                     $('button#start_race_2min').attr('disabled', 'disabled');
-                    $('button#start_race_no_cal').attr('disabled', 'disabled');
 					$('button#stop_race').attr('disabled', 'disabled');
 					$('button#save_laps').removeAttr('disabled');
 					$('button#clear_laps').removeAttr('disabled');
@@ -60,7 +71,6 @@
 					$('button#current_heat').removeAttr('disabled');
 					$('button#start_race').removeAttr('disabled');
                     $('button#start_race_2min').removeAttr('disabled');
-                    $('button#start_race_no_cal').removeAttr('disabled');
 					$('button#stop_race').attr('disabled', 'disabled');
 					$('button#save_laps').attr('disabled', 'disabled');
 					$('button#clear_laps').attr('disabled', 'disabled');
@@ -147,7 +157,13 @@
             }
          
 
-		})
+        })
+
+        socket.on('phonetic_data_first_pass', function (msg) {
+            if (document.getElementById('beep_first_pass').checked) {
+                beeper.play();
+            }
+        })
 
 		socket.on('language_data', function (msg) {
 			var $testlang = msg.language;
@@ -189,6 +205,24 @@
         }
     });
 
+    $('#calibrate_first_pass').click(function (event) {
+        if (document.getElementById('calibrate_first_pass').checked) {
+            document.cookie = "calibrate_first_pass=true";
+        }
+        else {
+            document.cookie = "calibrate_first_pass=false";
+        }
+    });
+
+    $('#beep_first_pass').click(function (event) {
+        if (document.getElementById('beep_first_pass').checked) {
+            document.cookie = "beep_first_pass=true";
+        }
+        else {
+            document.cookie = "beep_first_pass=false";
+        }
+    });
+
     $('#lap_text').focusout(function (event) {
         
         document.cookie = "lap_text=" + document.getElementById('lap_text').value;
@@ -204,8 +238,14 @@
         }
     });
 
-		$('button#start_race').click(function (event) {
-			socket.emit('start_race');
+    $('button#start_race').click(function (event) {
+        if (document.getElementById('calibrate_first_pass').checked)  {
+            socket.emit('start_race');
+        }
+        else {
+            socket.emit('start_race_no_cal');
+        }
+			
 			return false;
 		});
 
@@ -232,10 +272,6 @@
 
 
 
-    $('button#start_race_no_cal').click(function (event) {
-        socket.emit('start_race_no_cal');
-        return false;
-    });
     
 		$('button#stop_race').click(function (event) {
 			socket.emit('stop_race');
@@ -560,7 +596,6 @@
         </div>
         <button type="button" class="btn btn-default" id="start_race" onclick="this.blur();">Start Race</button>
         <button type="button" class="btn btn-default" id="start_race_2min" onclick="this.blur();">Start Fixed Time Race</button>
-        <button type="button" class="btn btn-default" id="start_race_no_cal" onclick="this.blur();">Start Race wihtout Calibration</button>
         {% include "build_timer.html" %}
         <button type="button" class="btn btn-default" id="stop_race" disabled="disabled" onclick="this.blur();">Stop Race</button>
         <button type="button" class="btn btn-default" id="save_laps" disabled="disabled" onclick="this.blur();">Save Laps</button>
@@ -587,6 +622,8 @@
             <button type="button" class="btn btn-default" id="LED_7C"><img src="..\static\image\LED-chase-green.png"></button>
             <button type="button" class="btn btn-default" id="LED_8C"><img src="..\static\image\LED-chase-red.png"></button>
     -->
+        <br /><input type="checkbox" id="calibrate_first_pass" name="calibrate_first_pass" value="calibrate_first_pass"> Calibrate during first pass
+        <br /><input type="checkbox" id="beep_first_pass" name="beep_first_pass" value="beep_first_pass"> Beep on first pass
         <br /><input type="checkbox" id="callout_name" name="callout_name" value="callout_name"> Callout pilot name
         <br /><input type="checkbox" id="callout_lap" name="callout_lap" value="callout_lap"> Callout lap numbers
         <br />Text to speak for Lap: <input id="lap_text" type="text" name="lap_text" value="Runde">
