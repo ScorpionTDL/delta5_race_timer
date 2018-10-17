@@ -170,14 +170,5 @@ sudo systemctl daemon-reload
 sudo systemctl enable delta5.service
 sudo reboot
 ```
-### WS2812b LED Support
-The ws2812b controls are provided by the following project:
-https://github.com/jgarff/rpi_ws281x
-
-Perform an update and install the dependencies:
-```
-sudo apt-get update
-sudo apt-get install build-essential python-dev git scons swig
-```
 
 
