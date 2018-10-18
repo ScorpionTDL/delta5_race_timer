@@ -14,12 +14,14 @@ Each receiver node is tuned to the video frequency that a drone is broadcasting 
 
 ### Changes compared to the main version from scottgchin
 * Lap Statistic Page
-* 5s minimal Laptime
+* configurable minimal Laptime
 * Color highligting of fastes laps in rounds overview
 * Race spectator page (same as race page without the ability to start/stop the race)
 * Ability to modify the voice output on the race page (mute specific nodes, disable lap number during callout, disable Pilot name during callout, configure the text that should be spoken if lap number is enabled). Together with the race spectator page this allows each pilot a customised voice announcement on his own mobile device for example.
 * Add function to start race without reclaibration of the RSSI values
 * Add function to recalibrate a specific node while the race is running
+* Add option to singnal the first pass with a beep
+* On database reset a backup of the old database is created to "database<datetime>.db"
 
 ### Hardware and Software Setup
 To build the system, follow the instructions here: [/doc/Hardware and Software Setup Instructions.md](/doc/Hardware%20and%20Software%20Setup%20Instructions.md)
