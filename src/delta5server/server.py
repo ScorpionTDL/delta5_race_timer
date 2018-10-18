@@ -34,6 +34,9 @@ APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASEDIR, 'da
 APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 DB = SQLAlchemy(APP)
 
+global  NODE_CALIBARTION_DONE
+NODE_CALIBARTION_DONE = False
+
 INTERFACE = get_hardware_interface()
 RACE = get_race_state() # For storing race management variables
 
@@ -635,7 +638,7 @@ def on_set_trigger_threshold(data):
 def backup_database():
     datetime_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     source_string = os.path.join(BASEDIR, 'database.db')
-    destination_string = source_string + "."+datetime_string
+    destination_string = os.path.join(BASEDIR,'database'+datetime_string+ '.db')
     server_log('create database backup from {0} to {1}'.format(source_string, destination_string))
     copyfile(source_string, destination_string)
 
@@ -747,10 +750,12 @@ def on_start_race_no_cal():
 
 def start_race():
     '''Common race start events.'''
+    global  NODE_CALIBARTION_DONE
     on_clear_laps() # Ensure laps are cleared before race start, shouldn't be needed
     emit_current_laps() # Race page, blank laps to the web client
     emit_leaderboard() # Race page, blank leaderboard to the web client
     INTERFACE.enable_calibration_mode() # Nodes reset triggers on next pass
+    NODE_CALIBARTION_DONE = True
     gevent.sleep(0.700) # Make this random 2 to 5 seconds
     RACE.race_status = 1 # To enable registering passed laps
     global RACE_START # To redefine main program variable
@@ -761,10 +766,13 @@ def start_race():
 
 def start_race_no_cal():
     '''Common race start events.'''
+    global  NODE_CALIBARTION_DONE
     on_clear_laps() # Ensure laps are cleared before race start, shouldn't be needed
     emit_current_laps() # Race page, blank laps to the web client
     emit_leaderboard() # Race page, blank leaderboard to the web client
- #   INTERFACE.enable_calibration_mode() # Nodes reset triggers on next pass
+    if not NODE_CALIBARTION_DONE :
+        INTERFACE.enable_calibration_mode() # Nodes reset triggers on next pass
+        NODE_CALIBARTION_DONE = True
     gevent.sleep(0.700) # Make this random 2 to 5 seconds
     RACE.race_status = 1 # To enable registering passed laps
     global RACE_START # To redefine main program variable
