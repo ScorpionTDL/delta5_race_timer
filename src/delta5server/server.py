@@ -385,19 +385,20 @@ def race():
 						   lang_id=RACE.lang_id,
         frequencies=[node.frequency for node in INTERFACE.nodes],
         channels=[Frequency.query.filter_by(frequency=node.frequency).first().channel
-            for node in INTERFACE.nodes])
+            for node in INTERFACE.nodes], show_race_buttons = True)
 
 @APP.route('/race_spectate')
 def race_spectate():
     '''Route to race management page.'''
-    return render_template('race_spectate.html', num_nodes=RACE.num_nodes,
+    return render_template('race.html', num_nodes=RACE.num_nodes,
                            current_heat=RACE.current_heat,
                            heats=Heat, pilots=Pilot,
                            fix_race_time=FixTimeRace.query.get(1).race_time_sec,
 						   lang_id=RACE.lang_id,
         frequencies=[node.frequency for node in INTERFACE.nodes],
         channels=[Frequency.query.filter_by(frequency=node.frequency).first().channel
-            for node in INTERFACE.nodes])
+            for node in INTERFACE.nodes], show_race_buttons = False)
+
 
 @APP.route('/settings')
 @requires_auth
