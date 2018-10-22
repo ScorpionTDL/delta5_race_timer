@@ -74,14 +74,12 @@ sudo raspi-config
 
 Install python, the python drivers for the GPIO and some other stuff we need.
 ```
-sudo apt-get install python-dev python-rpi.gpio libffi-dev python-smbus build-essential python-dev git scons swig
+sudo apt-get update 
+sudo apt-get upgrade
+sudo apt-get install python-dev python-rpi.gpio libffi-dev python-smbus build-essential python-pip git scons swig
 sudo pip install cffi
 ```
 
-Final system update and upgrade.
-```
-sudo apt-get update && sudo apt-get upgrade
-```
 
 Update i2c baud rate
 ```
@@ -98,6 +96,7 @@ Save and exit the file with Ctrl-x
 
 Clone the repository onto the Pi and initiate Scons:
 ```
+cd ~
 sudo git clone https://github.com/jgarff/rpi_ws281x.git
 cd rpi_ws281x
 sudo scons
