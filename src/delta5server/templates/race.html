@@ -653,46 +653,51 @@
 <form name="muteForm">
     <div class="row">
         {% for node in range(num_nodes) %}
-        {% if heats.query.filter_by(heat_id=current_heat,node_index=node).first().pilot_id >0 %}
-        <div class="col-xs-4 col-md-2">
-            <div class='panel panel-default'>
-                <div class="panel-heading">
-                    <h4 class="panel-title callsign_{{ node }}">
-                        {{
+        {% if heats.query.filter_by(heat_id=current_heat,node_index=node).first().pilot_id ==0 %}
+        <div style="display:none">
+        {% else %}
+        <div>
+        {% endif %}
+            <div class="col-xs-4 col-md-2">
+                <div class='panel panel-default'>
+                    <div class="panel-heading">
+                        <h4 class="panel-title callsign_{{ node }}">
+                            {{
  pilots.query.filter_by( pilot_id=heats.query.filter_by(heat_id=current_heat,node_index=node).first().pilot_id ).first().callsign
-                        }}
-                    </h4>
+                            }}
+                        </h4>
+                    </div>
+                    <div class="panel-heading">
+                        <p class="panel-title">
+                            <small>
+                                {{ channels[node] }} {{ frequencies[node] }}<br />
+                                <input type="checkbox" id="chk_mute" name="chk_mute" value="{{ node }}"> mute
+                            </small>
+                        </p>
+                        <!-- Comment-out <p></p> above and enable 'button' below to get simulate-lap buttons for debug testing -->
+                        <!--
+                <button type="button" class="btn btn-default" id="simulate_lap" data-node="{{ node }}" onclick="this.blur();"><small>{{ channels[node] }} {{ frequencies[node] }}</small></button>
+                -->
+                    </div>
+                    <table class="table" id="current_laps_{{ node }}">
+                        <thead>
+                            <tr>
+                                <td colspan="2">
+                                    <span class="current_rssi_{{ node }}"></span> /
+                                    <span class="trigger_rssi_{{ node }}"></span> /
+                                    <span class="peak_rssi_{{ node }}"></span>
+                                </td>
+                            </tr>
+                            {% if show_race_buttons %}
+                            <tr><td colspan="2"><button type="button" class="btn btn-default" id="recal" onclick="this.blur();" data-node="{{ node }}">Calibrate</button></td></tr>
+                            {% endif %}
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
-                <div class="panel-heading">
-                    <p class="panel-title">
-                        <small>
-                            {{ channels[node] }} {{ frequencies[node] }}<br />
-                            <input type="checkbox" id="chk_mute" name="chk_mute" value="{{ node }}"> mute
-                        </small>
-                    </p>
-                    <!-- Comment-out <p></p> above and enable 'button' below to get simulate-lap buttons for debug testing -->
-                    <!--
-                    <button type="button" class="btn btn-default" id="simulate_lap" data-node="{{ node }}" onclick="this.blur();"><small>{{ channels[node] }} {{ frequencies[node] }}</small></button>
-                    -->
-                </div>
-                <table class="table" id="current_laps_{{ node }}">
-                    <thead>
-                        <tr>
-                            <td colspan="2">
-                                <span class="current_rssi_{{ node }}"></span> /
-                                <span class="trigger_rssi_{{ node }}"></span> /
-                                <span class="peak_rssi_{{ node }}"></span>
-                            </td>
-                        </tr>
-                        {% if show_race_buttons %}
-                        <tr><td colspan="2"><button type="button" class="btn btn-default" id="recal" onclick="this.blur();" data-node="{{ node }}">Calibrate</button></td></tr>
-                        {% endif %}
-                    </thead>
-                    <tbody></tbody>
-                </table>
             </div>
         </div>
-        {% endif %}
+        
         {% endfor %}
     </div>
 </form>
