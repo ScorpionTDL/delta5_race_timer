@@ -56,21 +56,22 @@ Note: The latest Arduino IDE (1.8+) is required from https://www.arduino.cc/en/M
 
 Open '/delta5_race_timer/src/delta5node/delta5node.ino' in the Arduino IDE.
 
-Configure the '#define i2cSlaveAddress' line of the .ino for each node before uploading.
+Configure the '#define NODE_NUMBER' line of the .ino for each node before uploading. For first node set NODE_NUMBER to 1, for second set it to 2, etc.
 ```
-// Node Setup -- Set the i2c address here
-// Node 1 = 8, Node 2 = 10, Node 3 = 12, Node 4 = 14
-// Node 5 = 16, Node 6 = 18, Node 7 = 20, Node 8 = 22
-#define i2cSlaveAddress 8
+// Node Setup -- Set node number here (1 - 8)
+#define NODE_NUMBER 1
 ```
 
 ### System (Raspberry Pi)
-Start by installing Raspbian, follow the official instructions here: https://www.raspberrypi.org/downloads/raspbian/, use 'RASPBIAN JESSIE WITH PIXEL'
+Start by installing Raspbian, follow the official instructions here: https://www.raspberrypi.org/downloads/raspbian/, use 'RASPBIAN STRETCH WITH DESKTOP'
 
-Enable I2C and SPI on the Raspberry Pi, go to 'Advanced Options' and enable I2C and SPI.
+Configure the interface options on the Raspberry Pi.
+Open a Terminal window and enter the following command:
 ```
 sudo raspi-config
 ```
+Select Interfacing Options and enable: SSH, SPI, and I2C.
+
 
 Install python, the python drivers for the GPIO and some other stuff we need.
 ```
@@ -80,19 +81,22 @@ sudo apt-get install python-dev python-rpi.gpio libffi-dev python-smbus build-es
 sudo pip install cffi
 ```
 
-
 Update i2c baud rate
 ```
 sudo nano /boot/config.txt
 ```
-add the following line:
+add the following lines to the end of the file:
 ```
 dtparam=i2c_baudrate=75000
 core_freq=250
 ```
 Save and exit the file with Ctrl-x
 
-### WS2812b LED Support (needed even if you don't use the LEDs)
+
+### WS2812b LED Support
+The ws2812b controls are provided by the following project:
+https://github.com/jgarff/rpi_ws281x
+
 
 Clone the repository onto the Pi and initiate Scons:
 ```
@@ -106,18 +110,33 @@ Install the Python library:
 cd python
 sudo python setup.py install
 ```
-
+dtparam=i2c_baudrate=75000
+core_freq=250
+```
+Save and exit the file with Ctrl-x
 
 Clone or download this repo to '/home/pi/' on the Raspberry Pi.
 ```
 cd ~
-git clone https://github.com/ScorpionTDL/delta5_race_timer.git
+git clone https://github.com/scottgchin/delta5_race_timer.git
 ```
 
-Install web server packages, open a terminal in '/home/pi/delta5_race_timer/src/delta5server' and run
+System update and upgrade.
+```
+sudo apt-get update && sudo apt-get upgrade
+```
+
+Install web server packages
 ```
 cd /home/pi/delta5_race_timer/src/delta5server
 sudo pip install -r requirements.txt
+```
+
+Update permissions in working folder
+```
+cd ~
+cd /home/pi/delta5_race_timer/src
+sudo chmod 777 delta5server 
 ```
 
 ## Reboot System
@@ -169,5 +188,3 @@ sudo systemctl daemon-reload
 sudo systemctl enable delta5.service
 sudo reboot
 ```
-
-

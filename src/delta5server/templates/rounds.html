@@ -1,115 +1,74 @@
 {% extends "layout.html" %} {% block title %}Rounds{% endblock %} {% block head %} {% endblock %} {% block content %}
+<script type="text/javascript" charset="utf-8">
+	$(document).ready(function () {
+		var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-<!--Display the rounds-->
-{% set fastes_lap_of_total = rounds.query.filter(rounds.lap_id>0).order_by(rounds.lap_time).first().id %}
-{% for heat in rounds.query.with_entities(rounds.heat_id).distinct().order_by(rounds.heat_id) %}
-{% set fastes_lap_of_heat = rounds.query.filter(rounds.heat_id==heat.heat_id,rounds.lap_id>0).order_by(rounds.lap_time).first().id %}
-<h4>Heat {{ heat.heat_id }}</h4>
-{% for round in rounds.query.with_entities(rounds.round_id).distinct().filter_by(heat_id=heat.heat_id).order_by(rounds.round_id)
-%}
- {% set fastes_lap_of_round = rounds.query.filter(rounds.heat_id==heat.heat_id, rounds.round_id==round.round_id,rounds.lap_id>0).order_by(rounds.lap_time).first().id %}
-<h5>Round {{ round.round_id }}</h5>
-<div class="row">
-    {% for node in range(num_nodes) %}
-    {% set number_of_laps = rounds.query.filter(rounds.heat_id==heat.heat_id, rounds.round_id==round.round_id, rounds.node_index==node).count() %}
-    {% if number_of_laps > 1 %}
-    {% set fastes_lap_of_pilot = rounds.query.filter(rounds.heat_id==heat.heat_id, rounds.round_id==round.round_id, rounds.node_index==node, rounds.lap_id>0).order_by(rounds.lap_time).first().id %}
-    <div class="col-xs-8 col-sm-8 col-md-3">
-        <div class='panel panel-default'>
-            <div class="panel-heading">
-                <h4 class="panel-title ">
-                    {{ pilots.query.filter_by( pilot_id=heats.query.filter_by(heat_id=heat.heat_id,node_index=node).first().pilot_id ).first().callsign}}
+		socket.emit('load_data', {'load_types': [
+			'round_data'
+		]});
 
-                </h4>
-            </div>
-            <table class="table">
-                <tbody>
+		socket.on('round_data', function (msg) {
+			var page = $('.page-rounds')
+			page.empty();
 
-                    {% for lap in rounds.query.filter_by(heat_id=heat.heat_id, round_id=round.round_id, node_index=node).all() %}
-                    <tr {% if fastes_lap_of_pilot == lap.id %}
-                        style="font-weight:bold"
-                        {% endif %}
+			if (msg.heats.length) {
+				for (var heat_i in msg.heats) {
+					var heat = msg.heats[heat_i];
 
-                        {% if fastes_lap_of_total == lap.id %}
-                        bgcolor="#ADFF2F"
-                        {% elif fastes_lap_of_heat == lap.id %}
-                        bgcolor="#90EE90"
-                        {% elif fastes_lap_of_round == lap.id %}
-                        bgcolor="#F0FFF0"
-                        {% endif %}>
+					var panel = $('<div class="panel collapsing">');
+					var panel_header = $('<div class="panel-header">');
 
-                        <td>
+					if (heat.note) {
+						panel_header.append('<h2>' + heat.note + '</h2>');
+					} else {
+						panel_header.append('<h2>Heat ' + heat.heat_id + '</h2>');
+					}
+					panel.append(panel_header);
 
-                            {{ lap.lap_id }}
-                        </td>
-                        <td>
-                            <script>
-                            document.write( moment({{ lap.lap_time_stamp }}).format("mm:ss.SS")) ;
-                            </script>
-                        </td>
-                        <td>
-                            {{ lap.lap_time_formatted }}
-                        </td>
+					var panel_content = $('<div class="panel-content">');
+					for (var round_i in heat.rounds) {
+						var round = heat.rounds[round_i];
+						var round_div = $('<div class="round">');
 
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
-    {% endfor %}
-</div>
-{% endfor %}
+						round_div.append('<h3>Round ' + round.id + '</h3>')
 
+						var race_results = $('<div class="race-results">');
 
-<!--More generic data summary needed, see server.py notes-->
-<!--<h5>Heat {# heat.heat_id #} Summary</h5>
-<div class="row">
-    <div class='col-xs-12 col-md-6'>
-        <div class='panel panel-default'>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Pilot</th>
-                        <th>Laps</th>
-                        <th>Fastest</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {# for node in range(num_nodes) #}
-                    <tr>
-                        <td>
-                            {# pilots.query.filter_by(pilot_id=heats.query.filter_by(heat_id=heat.heat_id,node_index=node).first().pilot_id ).first().callsign #}
-                        </td>
-                        <td>
-                            {# heat_max_laps[heat.heat_id-1][node] #}
-                        </td>
-                        <td>
-                            {# heat_fast_laps[heat.heat_id-1][node] #}
-                        </td>
-                    </tr>
-                {# endfor #}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>-->
-{% endfor %}
-<div class="col-xs-8 col-sm-4 col-md-2">
-    <div class='panel panel-default'>
-        <div class="panel-heading">
-            legend
-        </div>
-        <table class="table">
-            <tbody>
-                <tr style="font-weight:bold"><td>Fastes Lap for this Pilot for this Round</td></tr>
-                <tr style="font-weight:bold" bgcolor="#F0FFF0"><td> Fastes Lap of this Round</td></tr>
-                <tr style="font-weight:bold" bgcolor="#90EE90"><td>Fastes Lap of this Heat</td></tr>
-                <tr style="font-weight:bold" bgcolor="#ADFF2F"><td>Fastes Lap of all Rounds and Heats</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+						for (var node_i in round.nodes) {
+							var node = round.nodes[node_i];
+							var node_div = $('<div class="node">');
+
+							node_div.append('<h4>' + node.pilot + '</h4>')
+
+							var table = $('<table class="laps">');
+							var tbody = $('<tbody>');
+
+							for (var lap_i in node.laps) {
+								var lap = node.laps[lap_i];
+								tbody.append('<tr><td>' + lap.id + '</td><td>' + lap.lap_time_formatted + '</td></tr>')
+
+							}
+
+							table.append(tbody);
+							node_div.append(table);
+							race_results.append(node_div);
+						}
+						round_div.append(race_results);
+						panel_content.append(round_div);
+					}
+					panel.append(panel_content);
+
+					page.append(panel)
+				}
+			} else {
+				page.append('<p>There is no saved race data available to view.</p>');
+			}
+		});
+	});
+</script>
+<main class="page-rounds">
+
+<p>Loading...</p>
+
+</main>
 {% endblock %}
-

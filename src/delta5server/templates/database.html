@@ -1,5 +1,6 @@
 {% extends "layout.html" %} {% block title %}Database{% endblock %} {% block content %}
-<h3>Pilots</h3>
+<main class="page-database">
+<h2>Pilots</h2>
 <table class="table">
     <thead>
         <tr>
@@ -21,7 +22,7 @@
     </tbody>
 </table>
 
-<h3>Heats</h3>
+<h2>Heats</h2>
 <table class="table">
     <thead>
         <tr>
@@ -43,7 +44,7 @@
     </tbody>
 </table>
 
-<h3>Current Laps</h3>
+<h2>Current Laps</h2>
 <table class="table">
     <thead>
         <tr>
@@ -71,7 +72,7 @@
     </tbody>
 </table>
 
-<h3>Saved Races</h3>
+<h2>Saved Races</h2>
 <table class="table">
     <thead>
         <tr>
@@ -103,26 +104,73 @@
     </tbody>
 </table>
 
-<h3>Frequencies</h3>
+<h2>Race Format</h2>
 <table class="table">
     <thead>
         <tr>
             <th>ID</th>
-            <th>Band</th>
-            <th>Channel</th>
-            <th>Frequency</th>
+            <th>Name</th>
+            <th>Mode</th>
+            <th>Time</th>
+            <th>Minimum Lap</th>
+            <th>Hide Staging Timer</th>
+            <th>Min Start Delay</th>
+            <th>Max Start Delay</th>
         </tr>
     </thead>
     <tbody>
-        {% for frequency in frequencies.query.all() %}
+        {% for raceformat in race_format.query.all() %}
         <tr>
-            <td>{{ frequency.id }}</td>
-            <td>{{ frequency.band }}</td>
-            <td>{{ frequency.channel }}</td>
-            <td>{{ frequency.frequency }}</td>
+            <td>{{ raceformat.id }}</td>
+            <td>{{ raceformat.name }}</td>
+            <td>{{ raceformat.race_mode }}</td>
+            <td>{{ raceformat.race_time_sec }}</td>
+            <td>{{ raceformat.min_lap_sec }}</td>
+            <td>{{ raceformat.hide_stage_timer }}</td>
+            <td>{{ raceformat.start_delay_min }}</td>
+            <td>{{ raceformat.start_delay_max }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
+<h2>Node Data</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Frequency</th>
+            <th>Offset</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for node in node_data.query.all() %}
+        <tr>
+            <td>{{ node.id }}</td>
+            <td>{{ node.frequency }}</td>
+            <td>{{ node.offset }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Global Settings</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Option</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for setting in globalSettings.query.all() %}
+        <tr>
+            <td>{{ setting.option_name }}</td>
+            <td>{{ setting.option_value }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</main>
 {% endblock %}
