@@ -1,6 +1,7 @@
 {% extends "layout.html" %} {% block title %}Run{% endblock %}{% block head %}
 <audio id="buzzer" src="./static/audio/buzzer.mp3" type="audio/mp3"></audio>
 <audio id="stagebuzzer" src="./static/audio/stage.mp3" type="audio/mp3"></audio>
+<audio id="beeper" src="./static/audio/beep.mp3" type="audio/mp3"></audio>
 
 <script type="text/javascript" src="./static/Blob.js"></script>
 <script type="text/javascript" src="./static/FileSaver.min.js"></script>
@@ -9,7 +10,8 @@
 	var socket = false;
 	var request_time;
 	var resume_check = true;
-
+    var beeper = $('#beeper')[0];
+	
 	var racedump = {
 		timestamp: new Date(),
 		timedata: [],
@@ -45,6 +47,8 @@
 		$('#voice_lap_count').prop( "checked", d5rt.voice_lap_count);
 		$('#voice_lap_time').prop( "checked", d5rt.voice_lap_time);
 		$('#voice_race_timer').prop( "checked", d5rt.voice_race_timer);
+		$('#beep_first_pass').prop("checked", d5rt.beep_first_pass);
+		$('#voice_lap_text').val(d5rt.voice_lap_text);
 		$().articulate('volume', d5rt.voice_volume);
 		$('#set_voice_volume').val(d5rt.voice_volume);
 		$('#buzzer')[0].volume = d5rt.tone_volume;
@@ -277,25 +281,31 @@
 
 			if (d5rt.voice_lap_count) {
 				if (ttstext.length > 0)
-					ttstext += ", ";
-				ttstext += "lap " + msg.lap;
+					ttstext += " ";
+				ttstext += d5rt.voice_lap_text + " " + msg.lap;
 			}
 
 			if (d5rt.voice_lap_time) {
 				if (ttstext.length > 0)
-					ttstext += ", ";
+					ttstext += " ";
 				ttstext += msg.phonetic;
 			}
 
 			if (msg.team_name && msg.team_laps) {
 				if (ttstext.length > 0)
 					ttstext += ", ";
-				ttstext += "team " + msg.team_name + ", lap " + msg.team_laps;
+				ttstext += "team " + msg.team_name + ", " + d5rt.voice_lap_text + " " + msg.team_laps;
 			}
 
 			speak('<div class="speech">' + ttstext + '</div>');
 		})
 
+		socket.on('phonetic_data_first_pass', function (msg) {
+            if (d5rt.beep_first_pass) {
+                beeper.play();
+            }
+        });
+		
 		socket.on('current_heat', function (msg) {
 			$('.current_heat').html('Heat ' + msg.current_heat);
 			for (i = 0; i < msg.callsign.length; i++) {
@@ -342,25 +352,6 @@
 			return false;
     });
 
-    
-
-    $('button#mute_all').click(function (event) {
-        var mygroup = document.muteForm.chk_mute;
-        for (i = 0; i < mygroup.length; i++) {
-            mygroup[i].checked = true;
-        }  
-    });
-
-    $('button#unmute_all').click(function (event) {
-        var mygroup = document.muteForm.chk_mute;
-        for (i = 0; i < mygroup.length; i++) {
-            mygroup[i].checked = false;
-        }
-    });
-
-
-
-    
 		$('button#stop_race').click(function (event) {
 			socket.emit('stop_race');
 			return false;
@@ -392,14 +383,6 @@
 			};
 			socket.emit('delete_lap', data);
 			return false;
-        });
-
-        $('button#recal').click(function (event) {
-            var data = {
-                node: parseInt($(this).data('node')),
-            };
-            socket.emit('recal',data);
-                return false;
         });
 
 		$('#set_current_heat').change(function (event) {
@@ -444,6 +427,12 @@
 			d5rt.saveData();
 		});
 
+		$('#beep_first_pass').change(function (event) {
+            d5rt.beep_first_pass = $(this).prop('checked');
+            d5rt.saveData();
+        });
+
+		
 		$('#set_voice_volume').on('input', function (event) {
 			$().articulate('volume', parseFloat($(this).val()));
 		});
@@ -462,6 +451,11 @@
 			d5rt.tone_volume = parseFloat($(this).val()); 
 			d5rt.saveData();
 		});
+		
+		$('#voice_lap_text').focusout(function (event) {
+            d5rt.voice_lap_text = $(this).val();// document.getElementById('voice_lap_text').value;
+            d5rt.saveData();
+        });
 
 		/* Race Format */
 		socket.on('min_lap', function (msg) {
@@ -749,10 +743,12 @@
 					Announcements
 				</div>
 				<ul>
+					<li><label><input type="checkbox" id="beep_first_pass"> Beep on first pass</label></li>
 					<li><label><input type="checkbox" id="voice_callsign"> Callsign</label></li>
 					<li><label><input type="checkbox" id="voice_lap_count"> Lap Number</label></li>
 					<li><label><input type="checkbox" id="voice_lap_time"> Lap Time</label></li>
 					<li><label><input type="checkbox" id="voice_race_timer"> Race Timer</label></li>
+					<li><label>Text to speak for Lap:<input type="text" id="voice_lap_text"></label></li>
 				</ul>
 			</li>
 			<li>

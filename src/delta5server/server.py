@@ -336,6 +336,94 @@ def heats():
     '''Route to heat summary page.'''
     return render_template('heats.html', getOption=getOption)
 
+@APP.route('/laps')
+def laps():
+
+    total_top_fastes_laps = []
+    all_laps_sorted_by_time = []
+    rounds_per_pilot = []
+    avg_50_laptime_array = []
+    avg_80_laptime_array = []
+    avg_90_laptime_array = []
+    current_lap_counter = 0
+    top_pilot_lapnumber_array = []
+    top_pilot_50_avg_array = []
+    top_pilot_80_avg_array = []
+    top_pilot_90_avg_array = []
+    top_pilot_fastes_lap_array = []
+    for lap in SavedRace.query.filter(SavedRace.lap_id!=0).order_by(SavedRace.lap_time):
+      total_top_fastes_laps.append(lap)
+      current_lap_counter = current_lap_counter +1
+      if current_lap_counter == 10:
+       break
+
+    for lap in SavedRace.query.order_by(SavedRace.lap_time):
+     all_laps_sorted_by_time.append(lap)
+
+    for pilot in Pilot.query:
+         rounds_current_pilot = SavedRace.query.filter(SavedRace.lap_id!=0, SavedRace.pilot_id==pilot.id).count()
+         rounds_per_pilot.append(rounds_current_pilot)       
+         lapcount = 0
+         avg_50_laptime = 0
+         avg_80_laptime = 0
+         avg_90_laptime = 0
+         fastes_lap = 0
+         for lap in SavedRace.query.filter(SavedRace.lap_id!=0,SavedRace.pilot_id==pilot.id).order_by(SavedRace.lap_time):
+             lapcount = lapcount +1
+             if lapcount == 1 :
+                 fastes_lap = lap.lap_time
+             if lapcount <= rounds_current_pilot * 0.5:
+                 avg_50_laptime = avg_50_laptime + lap.lap_time
+             if lapcount <= rounds_current_pilot * 0.8:
+                 avg_80_laptime = avg_80_laptime + lap.lap_time
+             if lapcount <= rounds_current_pilot * 0.9:
+                 avg_90_laptime = avg_90_laptime + lap.lap_time
+         if rounds_current_pilot > 1:
+             avg_50_laptime = avg_50_laptime /  int(rounds_current_pilot * 0.5)
+             avg_80_laptime = avg_80_laptime /  int(rounds_current_pilot * 0.8)
+             avg_90_laptime = avg_90_laptime /  int(rounds_current_pilot * 0.9)
+         avg_50_laptime_array.append(time_format(avg_50_laptime))
+         avg_80_laptime_array.append(time_format(avg_80_laptime))
+         avg_90_laptime_array.append(time_format(avg_90_laptime))
+
+         if rounds_current_pilot > 0:
+             tmp_row = []
+             tmp_row.append(pilot.id)
+             tmp_row.append(rounds_current_pilot)
+             top_pilot_lapnumber_array.append(tmp_row)
+
+         if avg_50_laptime > 0:
+            tmp_row = []
+            tmp_row.append(pilot.id)
+            tmp_row.append(time_format(avg_50_laptime))
+            top_pilot_50_avg_array.append(tmp_row)
+
+         if avg_80_laptime > 0:
+            tmp_row = []
+            tmp_row.append(pilot.id)
+            tmp_row.append(time_format(avg_80_laptime))
+            top_pilot_80_avg_array.append(tmp_row)
+
+         if avg_90_laptime > 0:
+            tmp_row = []
+            tmp_row.append(pilot.id)
+            tmp_row.append(time_format(avg_90_laptime))
+            top_pilot_90_avg_array.append(tmp_row)
+
+         if fastes_lap > 0:
+            tmp_row = []
+            tmp_row.append(pilot.id)
+            tmp_row.append(time_format(fastes_lap))
+            top_pilot_fastes_lap_array.append(tmp_row)
+
+
+    top_pilot_lapnumber_array.sort(key=lambda x : x[1], reverse=True)
+    top_pilot_50_avg_array.sort(key=lambda x : x[1])
+    top_pilot_80_avg_array.sort(key=lambda x : x[1])
+    top_pilot_90_avg_array.sort(key=lambda x : x[1])
+    top_pilot_fastes_lap_array.sort(key=lambda x : x[1])
+    return render_template('laps.html', num_nodes=RACE.num_nodes, rounds=SavedRace, pilots=Pilot, heats=Heat,  total_top_fastes_laps=total_top_fastes_laps,rounds_per_pilot=rounds_per_pilot, avg_50_laptime_array=avg_50_laptime_array, avg_80_laptime_array=avg_80_laptime_array, avg_90_laptime_array=avg_90_laptime_array, top_pilot_lapnumber_array = top_pilot_lapnumber_array, top_pilot_50_avg_array = top_pilot_50_avg_array, top_pilot_80_avg_array= top_pilot_80_avg_array, top_pilot_90_avg_array=top_pilot_90_avg_array, top_pilot_fastes_lap_array = top_pilot_fastes_lap_array, getOption=getOption,)
+
 
 @APP.route('/race')
 @requires_auth
@@ -698,10 +786,18 @@ def backup_database():
     server_log('create database backup from {0} to {1}'.format(source_string, destination_string))
     copyfile(source_string, destination_string)
 
+def backup_database():
+    datetime_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    source_string = os.path.join(BASEDIR, 'database.db')
+    destination_string = os.path.join(BASEDIR,'database'+datetime_string+ '.db')
+    server_log('create database backup from {0} to {1}'.format(source_string, destination_string))
+    copyfile(source_string, destination_string)	
+	
 @SOCKET_IO.on('reset_database')
 def on_reset_database(data):
     '''Reset database.'''
     reset_type = data['reset_type']
+    backup_database()
     if reset_type == 'races':
         db_reset_saved_races()
         db_reset_current_laps()
@@ -1433,6 +1529,10 @@ def emit_phonetic_data(pilot_id, lap_id, lap_time, team_name, team_laps, **param
     else:
         SOCKET_IO.emit('phonetic_data', emit_payload)
 
+def emit_phonetic_data_first_pass():
+    '''Just emits that a first pass was recorded'''
+    SOCKET_IO.emit('phonetic_data_first_pass')
+	
 def emit_enter_at_level(node, **params):
     '''Emits enter-at level for given node.'''
     emit_payload = {
@@ -1567,7 +1667,8 @@ def pass_record_callback(node, ms_since_lap):
                         team_name, team_laps = emit_team_racing_status(pilot_id)
                     else:
                         team_name, team_laps = None, None
-
+                    if lap_id == 0:
+                        emit_phonetic_data_first_pass() # Sends phonetic data to be spoken on first pass
                     if lap_id > 0:   # send phonetic data to be spoken
                         emit_phonetic_data(pilot_id, lap_id, lap_time, team_name, team_laps)
 
