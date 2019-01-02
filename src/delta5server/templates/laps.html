@@ -2,9 +2,9 @@
 
 <!-- display the fastet laps-->
 
-<div class="row">
-    <div class="col-xs-8 col-sm-4 col-md-2">
-        <div class='panel panel-default'>
+<table>
+    <tr>
+        <td>
             <div class="panel-heading">
                 <h4 class="panel-title ">Top 10 Rounds</h4>
             </div>
@@ -13,7 +13,7 @@
                     {% for lap in total_top_fastes_laps %}
                     <tr>
                         <td>
-                            {{ pilots.query.filter_by( pilot_id=lap.pilot_id).first().callsign }}
+                            {{ pilots.query.filter_by( id=lap.pilot_id).first().callsign }}
                         </td>
                         <td>
                             {{ lap.lap_time_formatted }}
@@ -22,11 +22,9 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-    </div>
+        </td>
+        <td>
 
-    <div class="col-xs-8 col-sm-4 col-md-2">
-        <div class='panel panel-default'>
             <div class="panel-heading">
                 <h4 class="panel-title ">Top # of Rounds</h4>
             </div>
@@ -35,7 +33,7 @@
                     {% for pilot in top_pilot_lapnumber_array %}
                     <tr>
                         <td>
-                            {{ pilots.query.filter_by( pilot_id=pilot[0]).first().callsign }}
+                            {{ pilots.query.filter_by( id=pilot[0]).first().callsign }}
                         </td>
                         <td>
                             {{pilot[1] }}
@@ -44,11 +42,9 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-    </div>
+        </td>
+        <td>
 
-    <div class="col-xs-8 col-sm-4 col-md-2">
-        <div class='panel panel-default'>
             <div class="panel-heading">
                 <h4 class="panel-title ">Top Laps</h4>
             </div>
@@ -57,7 +53,7 @@
                     {% for pilot in top_pilot_fastes_lap_array %}
                     <tr>
                         <td>
-                            {{ pilots.query.filter_by( pilot_id=pilot[0]).first().callsign }}
+                            {{ pilots.query.filter_by( id=pilot[0]).first().callsign }}
                         </td>
                         <td>
                             {{pilot[1] }}
@@ -66,11 +62,10 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-    </div>
 
-    <div class="col-xs-8 col-sm-4 col-md-2">
-        <div class='panel panel-default'>
+        </td>
+        <td>
+
             <div class="panel-heading">
                 <h4 class="panel-title ">Top 50% avg</h4>
             </div>
@@ -79,7 +74,7 @@
                     {% for pilot in top_pilot_50_avg_array %}
                     <tr>
                         <td>
-                            {{ pilots.query.filter_by( pilot_id=pilot[0]).first().callsign }}
+                            {{ pilots.query.filter_by( id=pilot[0]).first().callsign }}
                         </td>
                         <td>
                             {{pilot[1] }}
@@ -88,12 +83,10 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-    </div>
-    
 
-    <div class="col-xs-8 col-sm-4 col-md-2">
-        <div class='panel panel-default'>
+        </td>
+        <td>
+
             <div class="panel-heading">
                 <h4 class="panel-title ">Top 80% avg</h4>
             </div>
@@ -102,7 +95,7 @@
                     {% for pilot in top_pilot_80_avg_array %}
                     <tr>
                         <td>
-                            {{ pilots.query.filter_by( pilot_id=pilot[0]).first().callsign }}
+                            {{ pilots.query.filter_by( id=pilot[0]).first().callsign }}
                         </td>
                         <td>
                             {{pilot[1] }}
@@ -111,11 +104,10 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-    </div>
 
-    <div class="col-xs-8 col-sm-4 col-md-2">
-        <div class='panel panel-default'>
+        </td>
+        <td>
+
             <div class="panel-heading">
                 <h4 class="panel-title ">Top 90% avg</h4>
             </div>
@@ -124,7 +116,7 @@
                     {% for pilot in top_pilot_90_avg_array %}
                     <tr>
                         <td>
-                            {{ pilots.query.filter_by( pilot_id=pilot[0]).first().callsign }}
+                            {{ pilots.query.filter_by( id=pilot[0]).first().callsign }}
                         </td>
                         <td>
                             {{pilot[1] }}
@@ -133,29 +125,29 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-    </div>
-</div>
+            </td>
+    </tr>
+</table>
 
 <!-- display all laps of pilots sorted by time-->
-<div class="row">
-    {% for pilot in pilots.query.order_by(pilots.id)[1:]  %}
-    {%if rounds_per_pilot[pilot.pilot_id] > 0 %}
-    <div class="col-xs-8 col-sm-4 col-md-2">
-        <div class='panel panel-default'>
+<table>
+    <tr>
+        {% for pilot in pilots.query.order_by(pilots.id)[1:]  %}
+        {%if rounds_per_pilot[pilot.id-1] > 0 %}
+        <td>
             <div class="panel-heading">
                 <h4 class="panel-title ">{{ pilot.callsign}}</h4>
 
 
-                # of laps:{{rounds_per_pilot[pilot.pilot_id]}}<br />
-                50% avg: {{avg_50_laptime_array[pilot.pilot_id]}}<br />
-                80% avg: {{avg_80_laptime_array[pilot.pilot_id]}}<br />
-                90% avg: {{avg_90_laptime_array[pilot.pilot_id]}}<br />
+                # of laps:{{rounds_per_pilot[pilot.id-1]}}<br />
+                50% avg: {{avg_50_laptime_array[pilot.id-1]}}<br />
+                80% avg: {{avg_80_laptime_array[pilot.id-1]}}<br />
+                90% avg: {{avg_90_laptime_array[pilot.id-1]}}<br />
             </div>
             <table class="table">
                 <tbody>
                     <tr><td></td></tr>
-                    {% for lap in rounds.query.filter(rounds.pilot_id==pilot.pilot_id,rounds.lap_id!=0).order_by(rounds.lap_time) %}
+                    {% for lap in rounds.query.filter(rounds.pilot_id==pilot.id,rounds.lap_id!=0).order_by(rounds.lap_time) %}
                     <tr>
                         <td>
                             {{ lap.heat_id }}:{{ lap.round_id }}:{{ lap.lap_id }}
@@ -167,9 +159,10 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-    </div>
-    {% endif %}
-    {% endfor %}
-</div>
- {% endblock %}
+        </td>
+
+        {% endif %}
+        {% endfor %}
+    </tr>
+</table>
+        {% endblock %}
