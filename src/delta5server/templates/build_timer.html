@@ -30,9 +30,26 @@
 						clearInterval(timer_id);
 						pre_race = false;
 						timer_control.start();
-					} else {
-						if (stagebuzzer)
-							stagebuzzer.play(); // Pre-race buzzer
+                    } else {
+                        if (pre_delay < 10) {
+                            if (stagebuzzer)
+                                stagebuzzer.play(); // Pre-race buzzer
+                        }
+                        else if (pre_delay == 10) {
+                            speak('<div class="timer">'+d5rt.voice_translation_Start_in+' 10 ' + d5rt.voice_translation_Seconds + '</div>');
+                        }
+                        else if (pre_delay == 20) {
+                            speak('<div class="timer">' + d5rt.voice_translation_Start_in +' 20 ' + d5rt.voice_translation_Seconds + '</div>');
+                        }
+                        else if (pre_delay == 30) {
+                            speak('<div class="timer">' + d5rt.voice_translation_Start_in +' 30 ' + d5rt.voice_translation_Seconds + '</div>');
+                        }
+                        else if (pre_delay == 45) {
+                            speak('<div class="timer">' + d5rt.voice_translation_Start_in +' 45 ' + d5rt.voice_translation_Seconds + '</div>');
+                        }
+                        else if (pre_delay == 60) {
+                            speak('<div class="timer">' + d5rt.voice_translation_Start_in +' 1 ' + d5rt.voice_translation_Minute + '</div>');
+                        } 
 						generateTime(); // Updates html timer text
 					}
 				}, 1000); // 1000 ms update rate
@@ -190,25 +207,25 @@
 							stagebuzzer.play(); // Final seconds
 					} else if (time == 10) {
 						if (d5rt.voice_race_timer)
-							speak('<div class="timer">10 seconds</div>');
+                            speak('<div class="timer">10 ' + d5rt.voice_translation_Seconds + '</div>');
 					}
 				}
 
 				if (d5rt.voice_race_timer) {
 					if (time > 3600 && !(time % 3600)) { // 2+ hour callout (endurance)
 						var hours = time / 3600;
-						speak('<div class="timer">' + hours + ' hours</div>');
+                        speak('<div class="timer">' + hours + d5rt.voice_translation_Hours +'</div>'); 
 					} else if (time == 3600) {
-						speak('<div class="timer">1 hour</div>');
+                        speak('<div class="timer">1 '+ d5rt.voice_translation_Hour +'</div>');
 					} else if (time == 1800) {
-						speak('<div class="timer">30 minutes</div>');
+                        speak('<div class="timer">30 ' + d5rt.voice_translation_Minutes +'</div>');
 					} else if (time > 60 && time <= 300 && !(time % 60)) { // 2–5 min callout
 						var minutes = time / 60;
-						speak('<div class="timer">' + minutes + ' minutes</div>');
+                        speak('<div class="timer">' + minutes + ' ' + d5rt.voice_translation_Minutes +'</div>');
 					} else if (time == 60) {
-						speak('<div class="timer">1 minute</div>');
+                        speak('<div class="timer">1 ' + d5rt.voice_translation_Minute+'</div>');
 					} else if (time == 30) {
-						speak('<div class="timer">30 seconds</div>');
+                        speak('<div class="timer">30 ' + d5rt.voice_translation_Seconds + '</div>');
 					}
 				}
 

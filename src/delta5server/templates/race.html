@@ -48,7 +48,16 @@
 		$('#voice_lap_time').prop( "checked", d5rt.voice_lap_time);
 		$('#voice_race_timer').prop( "checked", d5rt.voice_race_timer);
 		$('#beep_first_pass').prop("checked", d5rt.beep_first_pass);
-		$('#voice_lap_text').val(d5rt.voice_lap_text);
+        $('#voice_lap_text').val(d5rt.voice_lap_text);
+        $('#voice_translation_Minute').val(d5rt.voice_translation_Minute);
+        $('#voice_translation_Second').val(d5rt.voice_translation_Second);
+        $('#voice_translation_Minutes').val(d5rt.voice_translation_Minutes);
+        $('#voice_translation_Seconds').val(d5rt.voice_translation_Seconds);
+        $('#voice_translation_Hour').val(d5rt.voice_translation_Hour);
+        $('#voice_translation_Hours').val(d5rt.voice_translation_Hours);
+        $('#voice_translation_Start_in').val(d5rt.voice_translation_Start_in);
+        
+
 		$().articulate('volume', d5rt.voice_volume);
 		$('#set_voice_volume').val(d5rt.voice_volume);
 		$('#buzzer')[0].volume = d5rt.tone_volume;
@@ -453,10 +462,45 @@
 		});
 		
 		$('#voice_lap_text').focusout(function (event) {
-            d5rt.voice_lap_text = $(this).val();// document.getElementById('voice_lap_text').value;
+            d5rt.voice_lap_text = $(this).val();
             d5rt.saveData();
         });
 
+        $('#voice_translation_Minute').focusout(function (event) {
+            d5rt.voice_translation_Minute = $(this).val();
+            d5rt.saveData();
+        });
+
+        $('#voice_translation_Second').focusout(function (event) {
+            d5rt.voice_translation_Second = $(this).val();
+            d5rt.saveData();
+        });
+
+        $('#voice_translation_Minutes').focusout(function (event) {
+            d5rt.voice_translation_Minutes = $(this).val();
+            d5rt.saveData();
+        });
+
+        $('#voice_translation_Seconds').focusout(function (event) {
+            d5rt.voice_translation_Seconds = $(this).val();
+            d5rt.saveData();
+        });
+
+        $('#voice_translation_Start_in').focusout(function (event) {
+            d5rt.voice_translation_Start_in = $(this).val();
+            d5rt.saveData();
+        });
+
+        
+        $('#voice_translation_Hour').focusout(function (event) {
+            d5rt.voice_translation_Hour = $(this).val();
+            d5rt.saveData();
+        });
+
+        $('#voice_translation_Hours').focusout(function (event) {
+            d5rt.voice_translation_Hours = $(this).val();
+            d5rt.saveData();
+        });
 		/* Race Format */
 		socket.on('min_lap', function (msg) {
 			$('#set_min_lap').val(msg.min_lap);
@@ -731,39 +775,54 @@
 	</div>
 	<div class="panel-content">
 		<p class="form-note">Voice settings apply to this device only.</p>
-		<ol class="form">
-			<li>
-				<div class="label-block">
-					<label for="set_language">Voice Select</label>
-				</div>
-				<div id="voice_select"></div>
-			</li>
-			<li>
-				<div class="label-block">
-					Announcements
-				</div>
-				<ul>
-					<li><label><input type="checkbox" id="beep_first_pass"> Beep on first pass</label></li>
-					<li><label><input type="checkbox" id="voice_callsign"> Callsign</label></li>
-					<li><label><input type="checkbox" id="voice_lap_count"> Lap Number</label></li>
-					<li><label><input type="checkbox" id="voice_lap_time"> Lap Time</label></li>
-					<li><label><input type="checkbox" id="voice_race_timer"> Race Timer</label></li>
-					<li><label>Text to speak for Lap:<input type="text" id="voice_lap_text"></label></li>
-				</ul>
-			</li>
-			<li>
-				<div class="label-block">
-					<label for="set_voice_volume">Voice Volume</label>
-				</div>
-				<input type="range" id="set_voice_volume" min="0" max="1.0" step="0.01">
-			</li>
-			<li>
-				<div class="label-block">
-					<label for="set_tone_volume">Tone Volume</label>
-				</div>
-				<input type="range" id="set_tone_volume" min="0" max="1.0" step="0.01">
-			</li>			
-		</ol>
+        <ol class="form">
+            <li>
+                <div class="label-block">
+                    <label for="set_language">Voice Select</label>
+                </div>
+                <div id="voice_select"></div>
+            </li>
+            <li>
+                <div class="label-block">
+                    Announcements
+                </div>
+                <ul>
+                    <li><label><input type="checkbox" id="beep_first_pass"> Beep on first pass</label></li>
+                    <li><label><input type="checkbox" id="voice_callsign"> Callsign</label></li>
+                    <li><label><input type="checkbox" id="voice_lap_count"> Lap Number</label></li>
+                    <li><label><input type="checkbox" id="voice_lap_time"> Lap Time</label></li>
+                    <li><label><input type="checkbox" id="voice_race_timer"> Race Timer</label></li>
+
+                </ul>
+            </li>
+            <li>
+                <div class="label-block">
+                    <label for="set_voice_volume">Voice Volume</label>
+                </div>
+                <input type="range" id="set_voice_volume" min="0" max="1.0" step="0.01">
+            </li>
+            <li>
+                <div class="label-block">
+                    <label for="set_tone_volume">Tone Volume</label>
+                </div>
+                <input type="range" id="set_tone_volume" min="0" max="1.0" step="0.01">
+            </li>
+            <li>
+                <div class="label-block">
+                    Local Language Translations.
+                </div>
+                <ul>
+                    <li><label>Lap:<input type="text" id="voice_lap_text"></label></li>
+                    <li><label>Hour:<input type="text" id="voice_translation_Hour"></label></li>
+                    <li><label>Hours:<input type="text" id="voice_translation_Hours"></label></li>
+                    <li><label>Minute:<input type="text" id="voice_translation_Minute"></label></li>
+                    <li><label>Minutes:<input type="text" id="voice_translation_Minutes"></label></li>
+                    <li><label>Second:<input type="text" id="voice_translation_Second"></label></li>
+                    <li><label>Seconds:<input type="text" id="voice_translation_Seconds"></label></li>
+                    <li><label>Start in:<input type="text" id="voice_translation_Start_in"></label></li>
+                </ul>
+            </li>
+        </ol>
 	</div>
 </div>
 

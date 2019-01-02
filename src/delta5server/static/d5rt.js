@@ -87,6 +87,14 @@ var d5rt = {
 	tone_volume: 1.0, // race stage/start tone volume
     beep_first_pass: true, //beed on first pass
     voice_lap_text: 'Lap', //Test to speek for Lap to adapt to local language
+    voice_translation_Minute: 'Minute',
+    voice_translation_Second: 'Second',
+    voice_translation_Minutes: 'Minutes',
+    voice_translation_Seconds: 'Seconds',
+    voice_translation_Hour: 'Hour2',
+    voice_translation_Hours: 'Hours2',
+    voice_translation_Start_in: 'Start in',
+    
 	admin: false, // whether to show admin options in nav
 	graphing: false,
 	primaryPilot: -1, // restrict voice calls to single pilot (default: all)
@@ -104,7 +112,15 @@ var d5rt = {
 		localStorage['d5rt.voice_lap_count'] = JSON.stringify(this.voice_lap_count);
 		localStorage['d5rt.voice_lap_time'] = JSON.stringify(this.voice_lap_time);
 		localStorage['d5rt.voice_race_timer'] = JSON.stringify(this.voice_race_timer);
-		localStorage['d5rt.voice_lap_text'] = JSON.stringify(this.voice_lap_text);
+        localStorage['d5rt.voice_lap_text'] = JSON.stringify(this.voice_lap_text);
+        localStorage['d5rt.voice_translation_Minute'] = JSON.stringify(this.voice_translation_Minute);
+        localStorage['d5rt.voice_translation_Second'] = JSON.stringify(this.voice_translation_Second);
+        localStorage['d5rt.voice_translation_Minutes'] = JSON.stringify(this.voice_translation_Minutes);
+        localStorage['d5rt.voice_translation_Seconds'] = JSON.stringify(this.voice_translation_Seconds);
+        localStorage['d5rt.voice_translation_Hour'] = JSON.stringify(this.voice_translation_Hour);
+        localStorage['d5rt.voice_translation_Hours'] = JSON.stringify(this.voice_translation_Hours);
+        localStorage['d5rt.voice_translation_Start_in'] = JSON.stringify(this.voice_translation_Start_in);
+        
 		localStorage['d5rt.tone_volume'] = JSON.stringify(this.tone_volume);
 		localStorage['d5rt.admin'] = JSON.stringify(this.admin);
 		localStorage['d5rt.primaryPilot'] = JSON.stringify(this.primaryPilot);
@@ -128,6 +144,27 @@ var d5rt = {
             }
             if (localStorage['d5rt.voice_lap_text']) {
                 this.voice_lap_text = JSON.parse(localStorage['d5rt.voice_lap_text']);
+            }
+            if (localStorage['d5rt.voice_translation_Minute']) {
+                this.voice_translation_Minute = JSON.parse(localStorage['d5rt.voice_translation_Minute']);
+            }
+            if (localStorage['d5rt.voice_translation_Second']) {
+                this.voice_translation_Second = JSON.parse(localStorage['d5rt.voice_translation_Second']);
+            }
+            if (localStorage['d5rt.voice_translation_Minutes']) {
+                this.voice_translation_Minutes = JSON.parse(localStorage['d5rt.voice_translation_Minutes']);
+            }
+            if (localStorage['d5rt.voice_translation_Seconds']) {
+                this.voice_translation_Seconds = JSON.parse(localStorage['d5rt.voice_translation_Seconds']);
+            }
+            if (localStorage['d5rt.voice_translation_Hour']) {
+                this.voice_translation_Hour = JSON.parse(localStorage['d5rt.voice_translation_Hour']);
+            }
+            if (localStorage['d5rt.voice_translation_Hours']) {
+                this.voice_translation_Hours = JSON.parse(localStorage['d5rt.voice_translation_Hours']);
+            }
+            if (localStorage['d5rt.voice_translation_Start_in']) {
+                this.voice_translation_Start_in = JSON.parse(localStorage['d5rt.voice_translation_Start_in']);
             }
 			if (localStorage['d5rt.voice_lap_count']) {
 				this.voice_lap_count = JSON.parse(localStorage['d5rt.voice_lap_count']);
