@@ -125,24 +125,24 @@
                     {% endfor %}
                 </tbody>
             </table>
-            </td>
+        </td>
     </tr>
 </table>
 
 <!-- display all laps of pilots sorted by time-->
 <table>
     <tr>
-        {% for pilot in pilots.query.order_by(pilots.id)[1:]  %}
-        {%if rounds_per_pilot[pilot.id-1] > 0 %}
+        {% for pilot in pilots.query.order_by(pilots.id)  %}
+        {%if rounds_per_pilot[pilot.id] > 0 %}
         <td>
             <div class="panel-heading">
                 <h4 class="panel-title ">{{ pilot.callsign}}</h4>
 
 
-                # of laps:{{rounds_per_pilot[pilot.id-1]}}<br />
-                50% avg: {{avg_50_laptime_array[pilot.id-1]}}<br />
-                80% avg: {{avg_80_laptime_array[pilot.id-1]}}<br />
-                90% avg: {{avg_90_laptime_array[pilot.id-1]}}<br />
+                # of laps:{{rounds_per_pilot[pilot.id]}}<br />
+                50% avg: {{avg_50_laptime_array[pilot.id]}}<br />
+                80% avg: {{avg_80_laptime_array[pilot.id]}}<br />
+                90% avg: {{avg_90_laptime_array[pilot.id]}}<br />
             </div>
             <table class="table">
                 <tbody>

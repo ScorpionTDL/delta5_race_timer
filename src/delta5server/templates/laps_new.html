@@ -1,0 +1,55 @@
+{% extends "layout.html" %} {% block title %}Laps{% endblock %} {% block head %} {% endblock %} {% block content %}
+
+
+<script type="text/javascript" charset="utf-8">
+	$(document).ready(function () {
+		var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+		socket.emit('load_data', {'load_types': [
+			'laps_statistic_data'
+		]});
+
+        socket.on('laps_statistic_data', function (msg) {
+			var page = $('.page-laps')
+            page.empty(); //clean the current page
+            
+                //if the have data in the top 10 laps we are good to go
+
+                //display the header table with top 10 laps, top # of rounds and average values
+                var panel = $('<div class="panel collapsing">');
+                var panel_header = $('<div class="panel-header"><h2>Top 10 Rounds</h2>');
+                panel.append(panel_header);
+                var panel_content = $('<div class="panel-content">');
+                var round_div = $('<div class="round">');
+                var node_div = $('<div class="node">');
+                var race_results = $('<div class="race-results">');
+                var table = $('<table class="laps">');
+                var tbody = $('<tbody>');
+
+
+                for (var lap in msg.top_pilot_fastes_lap_array) {
+                    tbody.append('<tr><td>' + msg.top_pilot_fastes_lap_array[lap][0] + '</td><td>' + msg.top_pilot_fastes_lap_array[lap][1] + '</td></tr>');
+                }
+                table.append(tbody);
+                node_div.append(table);
+                race_results.append(node_div);
+                round_div.append(race_results);
+                panel_content.append(round_div);
+                panel.append(panel_content);
+
+                page.append(panel);
+
+
+	
+		});
+	});
+</script>
+<main class="page-laps">
+
+    <p>Loading...</p>
+
+</main>
+<!-- display the fastet laps-->
+
+
+        {% endblock %}
