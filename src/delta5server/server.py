@@ -2083,6 +2083,9 @@ def pass_record_callback(node, ms_since_lap):
                         if race_format.number_laps_win > 0 and Race_laps_winner_name is None:
                             Race_laps_winner_name = check_team_laps_win(race_format.number_laps_win)
                         team_name, team_laps = check_emit_team_racing_status(pilot_id)
+                        if lap_id == 0:
+                            server_log('first Pass record ')
+                            emit_phonetic_data_first_pass() # Sends phonetic data to be spoken on first pass
 
                         if lap_id > 0:   # send phonetic data to be spoken
                             emit_phonetic_data(pilot_id, lap_id, lap_time, team_name, team_laps)
@@ -2093,6 +2096,10 @@ def pass_record_callback(node, ms_since_lap):
                                 emit_phonetic_text('Winner is team ' + Race_laps_winner_name)
 
                     else:  # not team racing mode
+                        if lap_id == 0:
+                            server_log('first Pass record ')
+                            emit_phonetic_data_first_pass() # Sends phonetic data to be spoken on first pass
+
                         if lap_id > 0:
                                             # send phonetic data to be spoken
                             if race_format.number_laps_win <= 0:
