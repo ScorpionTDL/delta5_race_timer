@@ -98,8 +98,10 @@ struct
     uint16_t volatile passRssiPeakRaw = 0;
     // peak smoothed rssi seen during current pass
     uint16_t volatile passRssiPeak = 0;
-    // time of the peak raw rssi for the current pass
+    // time of the first peak raw rssi for the current pass
     uint32_t volatile passRssiPeakRawTime = 0;
+    // time of the last peak raw rssi for the current pass
+    uint32_t volatile passRssiPeakRawLastTime = 0;
     // lowest smoothed rssi seen since end of last pass
     uint16_t volatile passRssiNadir = 999;
     // peak smoothed rssi seen since the node frequency was set
@@ -371,10 +373,18 @@ void loop()
 
         // Find the peak rssi and the time it occured during a crossing event
         // Use the raw value to account for the delay in smoothing.
-        if (state.rssiRaw > state.passRssiPeakRaw)
+        if (state.rssiRaw >= state.passRssiPeakRaw)
         {
-            state.passRssiPeakRaw = state.rssiRaw;
-            state.passRssiPeakRawTime = millis();
+            // if at max peak for more than one iteration then track first
+            //  and last timestamp so middle-timestamp value can be returned
+            state.passRssiPeakRawLastTime = millis();
+
+            if (state.rssiRaw > state.passRssiPeakRaw)
+            {
+                // this is first time this peak-raw-RSSI value was seen, so save value and timestamp
+                state.passRssiPeakRaw = state.rssiRaw;
+                state.passRssiPeakRawTime = state.passRssiPeakRawLastTime;
+            }
         }
 
         // track lowest smoothed rssi seen since end of last pass
@@ -396,7 +406,8 @@ void loop()
                 // save values for lap pass
                 lastPass.rssiPeakRaw = state.passRssiPeakRaw;
                 lastPass.rssiPeak = state.passRssiPeak;
-                lastPass.timeStamp = state.passRssiPeakRawTime;
+                // lap timestamp is between first and last peak RSSI
+                lastPass.timeStamp = (state.passRssiPeakRawLastTime + state.passRssiPeakRawTime) / 2;
                 lastPass.rssiNadir = state.passRssiNadir;
                 lastPass.lap = lastPass.lap + 1;
 

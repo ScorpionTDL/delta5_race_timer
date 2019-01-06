@@ -1,5 +1,7 @@
 {% extends "layout.html" %} {% block title %}Settings{% endblock %} {% block head %}
 <script type="text/javascript" charset="utf-8">
+	var globalAudioCtx = new (window.AudioContext || window.webkitAudioContext || window.audioContext);
+
 	$(document).ready(function () {
 		var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 		socket.emit('load_data', {'load_types': [
@@ -28,6 +30,10 @@
 		$().articulate('volume', d5rt.voice_volume);
 		$('#set_voice_volume').val(d5rt.voice_volume);
 		$('#set_tone_volume').val(d5rt.tone_volume);
+		$('#beep_crossing_entered').prop("checked", d5rt.beep_crossing_entered);
+		$('#beep_crossing_exited').prop("checked", d5rt.beep_crossing_exited);
+		$('#beep_manual_lap_button').prop("checked", d5rt.beep_manual_lap_button);
+		$('#set_beep_volume').val(d5rt.indicator_beep_volume);
 
 		// populate frequency selects
 		$('.frequency_table').each(function(){
@@ -402,6 +408,26 @@
 			d5rt.saveData();
 		});
 
+		$('#beep_crossing_entered').change(function (event) {
+			d5rt.beep_crossing_entered = $(this).prop('checked');
+			d5rt.saveData();
+		});
+
+		$('#beep_crossing_exited').change(function (event) {
+			d5rt.beep_crossing_exited = $(this).prop('checked');
+			d5rt.saveData();
+		});
+
+		$('#beep_manual_lap_button').change(function (event) {
+			d5rt.beep_manual_lap_button = $(this).prop('checked');
+			d5rt.saveData();
+		});
+
+		$('#set_beep_volume').on('change', function (event) {
+			d5rt.indicator_beep_volume = parseFloat($(this).val()); 
+			d5rt.saveData();
+		});
+
 		/* Race Format */
 		socket.on('min_lap', function (msg) {
 			$('#set_min_lap').val(msg.min_lap);
@@ -437,6 +463,7 @@
 			$('#set_hide_stage_timer').val(msg.hide_stage_timer);
 			$('#set_start_delay_min').val(msg.start_delay_min);
 			$('#set_start_delay_max').val(msg.start_delay_max);
+			$('#set_number_laps_win').val(msg.number_laps_win);
 		});
 
 		$('#set_race_format').change(function (event) {
@@ -496,6 +523,13 @@
 				start_delay_max: parseInt($(this).val())
 			};
 			socket.emit('set_start_delay_max', data);
+		})
+
+		$('#set_number_laps_win').change(function (event) {
+			var data = {
+				number_laps_win: parseInt($(this).val())
+			};
+			socket.emit('set_number_laps_win', data);
 		})
 
 		/* Calibration Profiles */
@@ -611,6 +645,17 @@
 			return false;
 		});
 
+		socket.on('node_crossing_change', function (msg) {
+			if (msg.crossing_flag) {
+				if (d5rt.beep_crossing_entered)
+					play_beep(25, 3500);
+			}
+			else {
+				if (d5rt.beep_crossing_exited)
+					play_beep(35, 2500);
+			}
+		});
+
 		function calcContrasts(option_index) {
 			var hue = $('html').css('--hue_' + option_index);
 			var sat = $('html').css('--sat_' + option_index);
@@ -689,6 +734,31 @@
 
 	function speak(obj) {
 		$(obj).articulate('setVoice','name', d5rt.language).articulate('speak');
+	};
+
+	//Generate tone. All arguments are optional:
+	//duration of the tone in milliseconds. Default is 500
+	//frequency of the tone in hertz. default is 440
+	//type of tone. Possible values are sine, square, sawtooth, triangle, and custom. Default is sine.
+	//callback to use on end of tone
+	/* https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep/29641185#29641185 */
+	function play_beep(duration, frequency, type, callback) {
+		var oscillator = globalAudioCtx.createOscillator();
+		var gainNode = globalAudioCtx.createGain();
+		
+		oscillator.connect(gainNode);
+		gainNode.connect(globalAudioCtx.destination);
+		
+		gainNode.gain.value = d5rt.indicator_beep_volume;
+		if (frequency)
+			oscillator.frequency.value = frequency;
+		if (type)
+			oscillator.type = type;
+		if (callback)
+			oscillator.onended = callback;
+		
+		oscillator.start();
+		setTimeout(function(){oscillator.stop()}, (duration ? duration : 500));
 	};
 
 </script>
@@ -788,7 +858,16 @@
 			<li><span style="background-color: #999"></span> Exit</li>
 			<li><span style="background-color: #666"></span> Nadir</li>
 		</ul>
-		<a href="/correction">Node Correction</a>
+		<div class="calibration-guide">
+			<h3>Calibration</h3>
+			<ol>
+				<li>Power on a VTx at the same fequency as the node</li>
+				<li>Pass VTx very near the timer until RSSI reaches absolute peak</li>
+				<li>Place VTx outside limit of gate (about 20ft is usually good) and press Capture for EnterAt</li>
+				<li>Place VTx several gate widths away and press Capture for ExitAt</li>
+				<li>Review "Crossing" points and adjust until accurately responding</li>
+			</ol>
+		</div>
 	</div>
 </div>
 
@@ -861,6 +940,22 @@
 				</div>
 				<input type="range" id="set_tone_volume" min="0" max="1.0" step="0.01">
 			</li>
+			<li>
+				<div class="label-block">
+					Indicator Beeps
+				</div>
+				<ul>
+					<li><label><input type="checkbox" id="beep_crossing_entered"> Crossing Entered</label></li>
+					<li><label><input type="checkbox" id="beep_crossing_exited"> Crossing Exited</label></li>
+					<li><label><input type="checkbox" id="beep_manual_lap_button"> Manual Lap Button</label></li>
+				</ul>
+			</li>
+			<li>
+				<div class="label-block">
+					<label for="set_beep_volume">Indicator Beeps Volume</label>
+				</div>
+				<input type="range" id="set_beep_volume" min="0" max="1.0" step="0.01">
+			</li>
 		</ol>
 	</div>
 </div>
@@ -926,6 +1021,12 @@
 				</div>
 				<input type="number" id="set_start_delay_max" min="0" max="999">
 			</li>
+			<li>
+				<div class="label-block">
+					<label for="set_number_laps_win">Number of Laps to Win</label>
+				</div>
+				<input type="number" id="set_number_laps_win" min="0" max="999">
+			</li>
 		</ol>
 
 		<hr />
@@ -947,7 +1048,7 @@
 					<option value="1">Team Racing Enabled</option>
 				</select>
 			</li>
-		</ol>		
+		</ol>
 	</div>
 </div>
 
@@ -981,75 +1082,12 @@
 			</li>
 			<li>
 				<div class="label-block">
-					<label for="set_calibration_offset">Entrance Sensitivity</label>
-					<p class="desc">Pass begins when RSSI rises at least this close to all-time peak (Default 8)</p>
-				</div>
-				<input type="number" id="set_calibration_offset" min="1" max="65535">
-			</li>
-			<li>
-				<div class="label-block">
-					<label for="set_calibration_threshold">Calibration Falloff</label>
-					<p class="desc">Calibration is completed when RSSI falls this amount (Default 95)</p>
-				</div>
-				<input type="number" id="set_calibration_threshold" min="1" max="65535">
-			</li>
-			<li>
-				<div class="label-block">
-					<label for="set_trigger_threshold">Exit Falloff</label>
-					<p class="desc">Pass is completed when RSSI falls by this amount (Default 40)</p>
-				</div>
-				<input type="number" id="set_trigger_threshold" min="1" max="65535">
-			</li>
-			<li>
-				<div class="label-block">
 					<label for="set_filter_ratio">Filter Ratio</label>
 					<p class="desc">RSSI Smoothing: .0001 smoothest, 1.0 unfiltered. (Default 0.01)</p>
 				</div>
 				<input type="number" id="set_filter_ratio" min="0.0001" max="1.0" step="0.0001">
 			</li>
 		</ol>
-
-		<div class="calibration-guide">
-			<h3>Calibration Guide</h3>
-			<table>
-				<tr>
-					<th>Issue</th>
-					<th>Resolution</th>
-				</tr>
-				<tr>
-					<td>Missing passes</td>
-					<td>Increase Entrance Sensitivity</td>
-				</tr>
-				<tr>
-					<td>Pass registers on other parts of course</td>
-					<td>Decrease Entrance Sensitivity</td>
-				</tr>
-				<tr>
-					<td>First pass triggers before crossing the gate</td>
-					<td>Increase Calibration Falloff</td>
-				</tr>
-				<tr>
-					<td>Not getting a pass record for the first pass</td>
-					<td>Decrease Calibration Falloff</td>
-				</tr>
-				<tr>
-					<td>Several pass records while passing the start gate</td>
-					<td>Increase Exit Falloff</td>
-				</tr>
-				<tr>
-					<td>Pass registering is significantly delayed</td>
-					<td>Decrease Exit Falloff</td>
-				</tr>
-				<tr>
-					<td>RSSI too noisy</td>
-					<td>Decrease Filter Ratio</td>
-				</tr>
-				<tr>
-					<td>RSSI reacts slowly to changes</td>
-					<td>Increase Filter Ratio</td>
-				</tr>
-			</table>
-		</div>
 	</div>
 </div>
 
