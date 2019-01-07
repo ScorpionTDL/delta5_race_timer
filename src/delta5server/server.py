@@ -825,6 +825,7 @@ def on_reset_database(data):
     emit_pilot_data()
     emit_current_laps()
     emit_round_data()
+    emit_laps_statistic_data()
     emit('reset_confirm')
 
 @SOCKET_IO.on('shutdown_pi')
@@ -1062,6 +1063,7 @@ def on_save_laps():
     server_log('Current laps saved: Heat {0} Round {1}'.format(RACE.current_heat, max_round+1))
     on_clear_laps() # Also clear the current laps
     emit_round_data() # live update rounds page
+    emit_laps_statistic_data() #live update the lap statistics page
 
 @SOCKET_IO.on('clear_laps')
 def on_clear_laps():
