@@ -115,14 +115,55 @@
             
 
 
-
-
             panel_content.append(Top_Laps_div);
             panel.append(panel_content);
-
             page.append(panel);
 
+            //END Top Laps over all pilots
 
+            //Start pilot Details that are showing all Laps per Pilot
+
+            var pilot_details_panel = $('<div class="panel collapsing open">');
+            var pilot_details_panel_header = $('<div class="panel-header"><h2>Pilot Details</h2>');
+            pilot_details_panel.append(pilot_details_panel_header);
+            var pilot_details_panel_content = $('<div class="panel-content">');
+            var pilot_details_div = $('<div class="race-results">');
+
+
+
+            for (var pilot_number in msg.pilot_details_array) {
+                if (pilot_number > 0) {
+                    var pilot_details_Laps = $('<div class="node">');
+                    var single_pilot_details_div = $('<div class="results">');
+                    var table = $('<table class="laps">');
+                    var tbody = $('<tbody>');
+                    header_str = msg.pilot_details_array[pilot_number][0] + "<br> # of laps: " + msg.pilot_details_array[pilot_number][2];
+                    //add the pilot average lap times to the Header
+                    for (var stat_numer in msg.pilot_details_array[pilot_number][3]) {
+                        header_str += "<br>" + msg.pilot_details_array[pilot_number][3][stat_numer];
+                    }
+
+                    single_pilot_details_div.append('<h4> ' + header_str +  '</h4>');
+                    for (var lap_number in msg.pilot_details_array[pilot_number][1]) {
+                        tbody.append('<tr><td>' + msg.pilot_details_array[pilot_number][1][lap_number] + '</td ></tr > ');
+                          }
+                    table.append(tbody);
+
+                    single_pilot_details_div.append(table);
+                    pilot_details_Laps.append(single_pilot_details_div);
+                    pilot_details_div.append(pilot_details_Laps);
+                }
+            }     
+ 
+           
+
+            pilot_details_panel_content.append(pilot_details_div);
+            pilot_details_panel.append(pilot_details_panel_content);
+
+            page.append(pilot_details_panel);
+
+
+            //END pilot Details that are showing all Laps per Pilot
 	
 		});
 	});
