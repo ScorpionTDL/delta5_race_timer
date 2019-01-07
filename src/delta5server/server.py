@@ -1349,10 +1349,13 @@ def emit_laps_statistic_data(**params):
 
     #get the 10 fastes laps from the database, ignore all laps with lap id 0 because those are the initial passes
     for lap in SavedRace.query.filter(SavedRace.lap_id!=0).order_by(SavedRace.lap_time):
-      total_top_fastes_laps.append(lap)
-      current_lap_counter = current_lap_counter +1
-      if current_lap_counter == 10:
-        break
+        tmp_row = []
+        tmp_row.append(lap.pilot_id)
+        tmp_row.append(lap.lap_time_formatted)
+        total_top_fastes_laps.append(tmp_row)
+        current_lap_counter = current_lap_counter +1
+        if current_lap_counter == 10:
+            break
 
     #loop thouh all plilots to gets statistics for each one of them
     for pilot in Pilot.query:
@@ -1390,31 +1393,31 @@ def emit_laps_statistic_data(**params):
 
          if laps_current_pilot > 0:
              tmp_row = []
-             tmp_row.append(pilot.id)
+             tmp_row.append(pilot.name)
              tmp_row.append(laps_current_pilot)
              top_pilot_lapnumber_array.append(tmp_row)
 
          if avg_50_laptime > 0:
             tmp_row = []
-            tmp_row.append(pilot.id)
+            tmp_row.append(pilot.name)
             tmp_row.append(time_format(avg_50_laptime))
             top_pilot_50_avg_array.append(tmp_row)
 
          if avg_80_laptime > 0:
             tmp_row = []
-            tmp_row.append(pilot.id)
+            tmp_row.append(pilot.name)
             tmp_row.append(time_format(avg_80_laptime))
             top_pilot_80_avg_array.append(tmp_row)
 
          if avg_90_laptime > 0:
             tmp_row = []
-            tmp_row.append(pilot.id)
+            tmp_row.append(pilot.name)
             tmp_row.append(time_format(avg_90_laptime))
             top_pilot_90_avg_array.append(tmp_row)
 
          if fastes_lap > 0:
             tmp_row = []
-            tmp_row.append(pilot.id)
+            tmp_row.append(pilot.name)
             tmp_row.append(time_format(fastes_lap))
             top_pilot_fastes_lap_array.append(tmp_row)
 
@@ -1426,6 +1429,7 @@ def emit_laps_statistic_data(**params):
     top_pilot_fastes_lap_array.sort(key=lambda x : x[1])
 
     emit_payload = {
+        'total_top_fastes_laps':total_top_fastes_laps,
         'top_pilot_50_avg_array': top_pilot_50_avg_array,
         'top_pilot_80_avg_array': top_pilot_80_avg_array,
         'top_pilot_90_avg_array': top_pilot_90_avg_array,
