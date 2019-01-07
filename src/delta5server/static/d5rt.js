@@ -91,8 +91,8 @@ var d5rt = {
     voice_translation_Second: 'Second',
     voice_translation_Minutes: 'Minutes',
     voice_translation_Seconds: 'Seconds',
-    voice_translation_Hour: 'Hour2',
-    voice_translation_Hours: 'Hours2',
+    voice_translation_Hour: 'Hour',
+    voice_translation_Hours: 'Hours',
     voice_translation_Start_in: 'Start in',
 	beep_crossing_entered: false, // beep node crossing entered
 	beep_crossing_exited: false, // beep node crossing exited
